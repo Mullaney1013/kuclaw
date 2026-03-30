@@ -56,4 +56,9 @@ TestCase {
         compare(state.sidebarWidth, 264)
         compare(state.toolbarLeftWidth, 264)
     }
+
+    function test_motion_spec_matches_figma_decision() {
+        compare(WorkspaceShellState.motionDurationMs(), 220)
+        compare(WorkspaceShellState.motionEasingType(), "OutCubic")
+    }
 }

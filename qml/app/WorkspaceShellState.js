@@ -3,6 +3,16 @@
 var COLLAPSED_WIDTH = 0
 var RAIL_WIDTH = 72
 var EXPANDED_WIDTH = 264
+var MOTION_DURATION_MS = 220
+var MOTION_EASING_TYPE = "OutCubic"
+
+function motionDurationMs() {
+    return MOTION_DURATION_MS
+}
+
+function motionEasingType() {
+    return MOTION_EASING_TYPE
+}
 
 function project(state) {
     var mode = "collapsed"
