@@ -445,7 +445,7 @@ ApplicationWindow {
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: 10
+        width: WorkspaceShellState.leftEdgeHotZoneWidth()
         z: 12
         hoverEnabled: true
         acceptedButtons: Qt.NoButton

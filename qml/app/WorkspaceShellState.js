@@ -3,8 +3,13 @@
 var COLLAPSED_WIDTH = 0
 var RAIL_WIDTH = 72
 var EXPANDED_WIDTH = 264
+var LEFT_EDGE_HOT_ZONE_WIDTH = 28
 var MOTION_DURATION_MS = 220
 var MOTION_EASING_TYPE = "OutCubic"
+
+function leftEdgeHotZoneWidth() {
+    return LEFT_EDGE_HOT_ZONE_WIDTH
+}
 
 function motionDurationMs() {
     return MOTION_DURATION_MS

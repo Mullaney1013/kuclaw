@@ -65,6 +65,7 @@ TestCase {
     }
 
     function test_motion_spec_matches_figma_decision() {
+        compare(WorkspaceShellState.leftEdgeHotZoneWidth(), 28)
         compare(WorkspaceShellState.motionDurationMs(), 220)
         compare(WorkspaceShellState.motionEasingType(), "OutCubic")
     }
