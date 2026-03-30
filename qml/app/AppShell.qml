@@ -108,16 +108,7 @@ ApplicationWindow {
     }
 
     function pageDisplayTitle(page) {
-        switch (page) {
-        case "home":
-            return "Home"
-        case "projects":
-            return "My Projects"
-        case "team":
-            return "Team"
-        default:
-            return "Select an item from the sidebar"
-        }
+        return "Select an item from the sidebar"
     }
 
     component ExpandedSidebarButton: Item {
@@ -360,9 +351,9 @@ ApplicationWindow {
             Label {
                 anchors.centerIn: parent
                 text: root.pageDisplayTitle(root.currentPage)
-                font.pixelSize: root.currentPage === "none" ? 22 : 28
-                font.weight: root.currentPage === "none" ? Font.Normal : Font.Medium
-                color: root.currentPage === "none" ? "#9E9E9E" : "#6F6F6F"
+                font.pixelSize: 22
+                font.weight: Font.Normal
+                color: "#8B8B8B"
             }
         }
     }
