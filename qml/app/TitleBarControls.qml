@@ -5,6 +5,7 @@ Item {
 
     property bool backEnabled: false
     property bool forwardEnabled: false
+    property string sidebarToggleIconSource: "qrc:/qt/qml/Kuclaw/assets/icons/sidebar-toggle.svg"
 
     property alias sidebarToggleTarget: sidebarToggleMouseArea
     property alias sidebarToggleIconTarget: sidebarToggleIcon
@@ -92,7 +93,7 @@ Item {
                 anchors.centerIn: parent
                 width: 20
                 height: 16
-                source: Qt.resolvedUrl("../../assets/icons/sidebar-toggle.svg")
+                source: root.sidebarToggleIconSource
                 fillMode: Image.PreserveAspectFit
                 sourceSize.width: 20
                 sourceSize.height: 16

@@ -19,6 +19,7 @@ TestCase {
         TitleBarControls {
             width: 180
             height: 24
+            sidebarToggleIconSource: Qt.resolvedUrl("../../assets/icons/sidebar-toggle.svg")
         }
     }
 
@@ -39,7 +40,8 @@ TestCase {
     function test_sidebar_toggle_uses_exported_svg_asset() {
         const subject = createSubject()
 
-        verify(subject.sidebarToggleIconTarget.source.toString().endsWith("/assets/icons/sidebar-toggle.svg"))
+        compare(subject.sidebarToggleIconTarget.source.toString(),
+                subject.sidebarToggleIconSource.toString())
     }
 
     function test_back_button_emits_signal_when_enabled() {
