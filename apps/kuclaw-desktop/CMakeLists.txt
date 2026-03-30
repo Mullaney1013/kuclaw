@@ -40,6 +40,7 @@ set(KUCLAW_QML_FILES
     ${CMAKE_SOURCE_DIR}/qml/app/Main.qml
     ${CMAKE_SOURCE_DIR}/qml/app/AppShell.qml
     ${CMAKE_SOURCE_DIR}/qml/app/AutomationSectionStyles.js
+    ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceShellState.js
     ${CMAKE_SOURCE_DIR}/qml/app/TitleBarControls.qml
     ${CMAKE_SOURCE_DIR}/qml/app/ShellNavigation.js
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceSelection.js
@@ -50,6 +51,14 @@ set(KUCLAW_QML_FILES
     ${CMAKE_SOURCE_DIR}/qml/pin/PinboardPanel.qml
     ${CMAKE_SOURCE_DIR}/qml/settings/RecentColorPanel.qml
     ${CMAKE_SOURCE_DIR}/qml/settings/SettingsPanel.qml
+)
+
+set(KUCLAW_RESOURCE_FILES
+    ${CMAKE_SOURCE_DIR}/assets/icons/home.svg
+    ${CMAKE_SOURCE_DIR}/assets/icons/my-projects.svg
+    ${CMAKE_SOURCE_DIR}/assets/icons/team.svg
+    ${CMAKE_SOURCE_DIR}/assets/icons/settings.svg
+    ${CMAKE_SOURCE_DIR}/assets/icons/sidebar-toggle.svg
 )
 
 set_source_files_properties(
@@ -65,6 +74,10 @@ set_source_files_properties(
     PROPERTIES QT_RESOURCE_ALIAS app/AutomationSectionStyles.js
 )
 set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceShellState.js
+    PROPERTIES QT_RESOURCE_ALIAS app/WorkspaceShellState.js
+)
+set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/TitleBarControls.qml
     PROPERTIES QT_RESOURCE_ALIAS app/TitleBarControls.qml
 )
@@ -75,6 +88,26 @@ set_source_files_properties(
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceSelection.js
     PROPERTIES QT_RESOURCE_ALIAS app/WorkspaceSelection.js
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/assets/icons/home.svg
+    PROPERTIES QT_RESOURCE_ALIAS assets/icons/home.svg
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/assets/icons/my-projects.svg
+    PROPERTIES QT_RESOURCE_ALIAS assets/icons/my-projects.svg
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/assets/icons/team.svg
+    PROPERTIES QT_RESOURCE_ALIAS assets/icons/team.svg
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/assets/icons/settings.svg
+    PROPERTIES QT_RESOURCE_ALIAS assets/icons/settings.svg
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/assets/icons/sidebar-toggle.svg
+    PROPERTIES QT_RESOURCE_ALIAS assets/icons/sidebar-toggle.svg
 )
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/capture/CaptureOverlay.qml
@@ -130,6 +163,8 @@ qt_add_qml_module(${KUCLAW_DESKTOP_TARGET}
     VERSION 1.0
     QML_FILES
         ${KUCLAW_QML_FILES}
+    RESOURCES
+        ${KUCLAW_RESOURCE_FILES}
 )
 
 target_include_directories(${KUCLAW_DESKTOP_TARGET}
