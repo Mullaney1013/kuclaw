@@ -1,0 +1,399 @@
+{
+	"BUILD_DIR" : "/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/kuclaw_desktop_autogen",
+	"CMAKE_BINARY_DIR" : "/Users/Y/Documents/kuclaw/build",
+	"CMAKE_CURRENT_BINARY_DIR" : "/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop",
+	"CMAKE_CURRENT_SOURCE_DIR" : "/Users/Y/Documents/kuclaw/apps/kuclaw-desktop",
+	"CMAKE_EXECUTABLE" : "/usr/local/bin/cmake",
+	"CMAKE_LIST_FILES" : 
+	[
+		"/Users/Y/Documents/kuclaw/apps/kuclaw-desktop/CMakeLists.txt",
+		"/usr/local/opt/qt/lib/cmake/Qt6Core/Qt6CoreConfigureFileTemplate.in",
+		"/usr/local/opt/qt/lib/cmake/Qt6Qml/Qt6QmlModuleDirMappingTemplate.qrc.in",
+		"/usr/local/opt/qt/lib/cmake/Qt6Core/Qt6CoreConfigureFileTemplate.in",
+		"/usr/local/opt/qt/lib/cmake/Qt6Qml/Qt6qmldirTemplate.cmake.in",
+		"/usr/local/opt/qt/lib/cmake/Qt6Qml/Qt6qmldirTemplate.cmake.in",
+		"/usr/local/opt/qt/lib/cmake/Qt6Qml/Qt6qmldirTemplate.cmake.in",
+		"/usr/local/opt/qt/lib/cmake/Qt6Qml/Qt6qmldirTemplate.cmake.in",
+		"/usr/local/opt/qt/lib/cmake/Qt6Core/Qt6CoreConfigureFileTemplate.in",
+		"/usr/local/opt/qt/lib/cmake/Qt6Qml/Qt6qmldirTemplate.cmake.in",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.qt/qml_imports/kuclaw_desktop_conf.cmake",
+		"/usr/local/lib/cmake/Qt6/macos/Info.plist.app.in"
+	],
+	"CMAKE_SOURCE_DIR" : "/Users/Y/Documents/kuclaw",
+	"CROSS_CONFIG" : false,
+	"DEP_FILE" : "/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/kuclaw_desktop_autogen/deps",
+	"DEP_FILE_RULE_NAME" : "kuclaw_desktop_autogen/timestamp",
+	"HEADERS" : 
+	[
+		[
+			"/Users/Y/Documents/kuclaw/apps/kuclaw-desktop/app/ApplicationCoordinator.h",
+			"MU",
+			"VJIZ3MDCXP/moc_ApplicationCoordinator.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/annotation/AnnotationManager.h",
+			"MU",
+			"JFDXTE75DG/moc_AnnotationManager.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/capture/CaptureCoordinator.h",
+			"MU",
+			"V4DCWJEPX5/moc_CaptureCoordinator.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/capture/CaptureSessionController.h",
+			"MU",
+			"V4DCWJEPX5/moc_CaptureSessionController.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/capture/FreezeOverlayWidget.h",
+			"MU",
+			"V4DCWJEPX5/moc_FreezeOverlayWidget.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/capture/NativeScreenHelperFactory.h",
+			"MU",
+			"V4DCWJEPX5/moc_NativeScreenHelperFactory.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/capture/ScreenCaptureManager.h",
+			"MU",
+			"V4DCWJEPX5/moc_ScreenCaptureManager.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/clipboard/ClipboardManager.h",
+			"MU",
+			"OSU7WFOULP/moc_ClipboardManager.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/common/Logger.h",
+			"MU",
+			"MCBZ5YERTN/moc_Logger.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/common/SingleInstanceGuard.h",
+			"MU",
+			"MCBZ5YERTN/moc_SingleInstanceGuard.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/hotkey/HotkeyManager.h",
+			"MU",
+			"S7YEUWJPLY/moc_HotkeyManager.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/pin/PinWindowManager.h",
+			"MU",
+			"X2AR3SRSZ7/moc_PinWindowManager.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/settings/SettingsManager.h",
+			"MU",
+			"M4EIAJCQ4G/moc_SettingsManager.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/tray/TrayManager.h",
+			"MU",
+			"FTKZW3PQMD/moc_TrayManager.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/integration/platform/MacHotkeyRegistrar.h",
+			"MU",
+			"E4PMVAF3CJ/moc_MacHotkeyRegistrar.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/integration/platform/NativeScreenHelperMac.h",
+			"MU",
+			"E4PMVAF3CJ/moc_NativeScreenHelperMac.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/integration/platform/NativeScreenHelperWin.h",
+			"MU",
+			"E4PMVAF3CJ/moc_NativeScreenHelperWin.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/integration/platform/NoopHotkeyRegistrar.h",
+			"MU",
+			"E4PMVAF3CJ/moc_NoopHotkeyRegistrar.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/integration/platform/WinHotkeyRegistrar.h",
+			"MU",
+			"E4PMVAF3CJ/moc_WinHotkeyRegistrar.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/ui_bridge/viewmodels/CaptureViewModel.h",
+			"MU",
+			"J6CVQ2VG3X/moc_CaptureViewModel.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/ui_bridge/viewmodels/ColorHistoryViewModel.h",
+			"MU",
+			"J6CVQ2VG3X/moc_ColorHistoryViewModel.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/ui_bridge/viewmodels/PinboardViewModel.h",
+			"MU",
+			"J6CVQ2VG3X/moc_PinboardViewModel.cpp",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/ui_bridge/viewmodels/SettingsViewModel.h",
+			"MU",
+			"J6CVQ2VG3X/moc_SettingsViewModel.cpp",
+			null
+		]
+	],
+	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
+	"INCLUDE_DIR" : "/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/kuclaw_desktop_autogen/include",
+	"MOC_COMPILATION_FILE" : "/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/kuclaw_desktop_autogen/mocs_compilation.cpp",
+	"MOC_DEFINITIONS" : 
+	[
+		"QT_CORE_LIB",
+		"QT_GUI_LIB",
+		"QT_NETWORK_LIB",
+		"QT_NO_DEBUG",
+		"QT_OPENGL_LIB",
+		"QT_QMLINTEGRATION_LIB",
+		"QT_QML_LIB",
+		"QT_QUICKCONTROLS2_LIB",
+		"QT_QUICK_LIB",
+		"QT_WIDGETS_LIB"
+	],
+	"MOC_DEPEND_FILTERS" : 
+	[
+		[
+			"Q_PLUGIN_METADATA",
+			"[\n][ \t]*Q_PLUGIN_METADATA[ \t]*\\([^\\)]*FILE[ \t]*\"([^\"]+)\""
+		]
+	],
+	"MOC_INCLUDES" : 
+	[
+		"/Users/Y/Documents/kuclaw/apps/kuclaw-desktop",
+		"/Users/Y/Documents/kuclaw/src",
+		"/usr/local/opt/qt/lib/QtQml.framework/Headers",
+		"/usr/local/opt/qt/lib/QtQml.framework",
+		"/usr/local/opt/qt/lib/QtCore.framework/Headers",
+		"/usr/local/opt/qt/lib/QtCore.framework",
+		"/usr/local/opt/qt/share/qt/mkspecs/macx-clang",
+		"/usr/local/opt/qt/include",
+		"/usr/local/opt/qt/include/QtQmlIntegration",
+		"/usr/local/opt/qt/lib/QtNetwork.framework/Headers",
+		"/usr/local/opt/qt/lib/QtNetwork.framework",
+		"/usr/local/opt/qt/lib/QtGui.framework/Headers",
+		"/usr/local/opt/qt/lib/QtGui.framework",
+		"/usr/local/opt/qt/lib/QtQuick.framework/Headers",
+		"/usr/local/opt/qt/lib/QtQuick.framework",
+		"/usr/local/opt/qt/lib/QtOpenGL.framework/Headers",
+		"/usr/local/opt/qt/lib/QtOpenGL.framework",
+		"/usr/local/opt/qt/lib/QtQuickControls2.framework/Headers",
+		"/usr/local/opt/qt/lib/QtQuickControls2.framework",
+		"/usr/local/opt/qt/lib/QtWidgets.framework/Headers",
+		"/usr/local/opt/qt/lib/QtWidgets.framework",
+		"/usr/local/include",
+		"/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1",
+		"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include",
+		"/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include",
+		"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"
+	],
+	"MOC_MACRO_NAMES" : 
+	[
+		"Q_OBJECT",
+		"Q_GADGET",
+		"Q_NAMESPACE",
+		"Q_NAMESPACE_EXPORT",
+		"Q_GADGET_EXPORT",
+		"Q_ENUM_NS"
+	],
+	"MOC_OPTIONS" : [ "--output-json" ],
+	"MOC_PATH_PREFIX" : false,
+	"MOC_PREDEFS_CMD" : 
+	[
+		"/usr/bin/c++",
+		"-std=c++20",
+		"-w",
+		"-dM",
+		"-E",
+		"/usr/local/share/cmake/Modules/CMakeCXXCompilerABI.cpp"
+	],
+	"MOC_PREDEFS_FILE" : "/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/kuclaw_desktop_autogen/moc_predefs.h",
+	"MOC_RELAXED_MODE" : false,
+	"MOC_SKIP" : 
+	[
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.qt/rcc/qrc_kuclaw_desktop_raw_qml_0.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.qt/rcc/qrc_kuclaw_desktop_raw_qml_0_extra_qmldirs.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.qt/rcc/qrc_qmake_Kuclaw.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/kuclaw_desktop_qmlcache_loader.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/app/AppShell_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/app/Main_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/capture/CaptureOverlayWindow_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/capture/CaptureOverlay_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/capture/CaptureToolbar_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/capture/Magnifier_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/pin/PinboardPanel_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/settings/RecentColorPanel_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/settings/SettingsPanel_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/kuclaw_desktop_qmltyperegistrations.cpp"
+	],
+	"MULTI_CONFIG" : false,
+	"PARALLEL" : 18,
+	"PARSE_CACHE_FILE" : "/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/CMakeFiles/kuclaw_desktop_autogen.dir/ParseCache.txt",
+	"QT_MOC_EXECUTABLE" : "/usr/local/opt/qt/share/qt/libexec/moc",
+	"QT_UIC_EXECUTABLE" : "/usr/local/opt/qt/share/qt/libexec/uic",
+	"QT_VERSION_MAJOR" : 6,
+	"QT_VERSION_MINOR" : 10,
+	"SETTINGS_FILE" : "/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/CMakeFiles/kuclaw_desktop_autogen.dir/AutogenUsed.txt",
+	"SOURCES" : 
+	[
+		[
+			"/Users/Y/Documents/kuclaw/apps/kuclaw-desktop/app/ApplicationCoordinator.cpp",
+			"MU",
+			null
+		],
+		[ "/Users/Y/Documents/kuclaw/apps/kuclaw-desktop/main.cpp", "MU", null ],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/annotation/AnnotationManager.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/capture/CaptureCoordinator.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/capture/CaptureSessionController.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/capture/FreezeOverlayWidget.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/capture/NativeScreenHelperFactory.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/capture/ScreenCaptureManager.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/clipboard/ClipboardManager.cpp",
+			"MU",
+			null
+		],
+		[ "/Users/Y/Documents/kuclaw/src/core/common/Logger.cpp", "MU", null ],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/common/SingleInstanceGuard.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/hotkey/HotkeyManager.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/pin/PinWindowManager.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/core/settings/SettingsManager.cpp",
+			"MU",
+			null
+		],
+		[ "/Users/Y/Documents/kuclaw/src/core/tray/TrayManager.cpp", "MU", null ],
+		[
+			"/Users/Y/Documents/kuclaw/src/integration/platform/MacHotkeyRegistrar.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/integration/platform/NativeScreenHelperMac.mm",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/integration/platform/NativeScreenHelperWin.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/integration/platform/NoopHotkeyRegistrar.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/integration/platform/WinHotkeyRegistrar.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/ui_bridge/viewmodels/CaptureViewModel.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/ui_bridge/viewmodels/ColorHistoryViewModel.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/ui_bridge/viewmodels/PinboardViewModel.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/Y/Documents/kuclaw/src/ui_bridge/viewmodels/SettingsViewModel.cpp",
+			"MU",
+			null
+		]
+	],
+	"UIC_OPTIONS" : [],
+	"UIC_SEARCH_PATHS" : [],
+	"UIC_SKIP" : 
+	[
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.qt/rcc/qrc_kuclaw_desktop_raw_qml_0.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.qt/rcc/qrc_kuclaw_desktop_raw_qml_0_extra_qmldirs.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.qt/rcc/qrc_qmake_Kuclaw.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/kuclaw_desktop_qmlcache_loader.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/app/AppShell_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/app/Main_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/capture/CaptureOverlayWindow_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/capture/CaptureOverlay_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/capture/CaptureToolbar_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/capture/Magnifier_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/pin/PinboardPanel_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/settings/RecentColorPanel_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.rcc/qmlcache/qml/settings/SettingsPanel_qml.cpp",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/kuclaw_desktop_qmltyperegistrations.cpp"
+	],
+	"UIC_UI_FILES" : [],
+	"USE_BETTER_GRAPH" : true,
+	"VERBOSITY" : 0
+}

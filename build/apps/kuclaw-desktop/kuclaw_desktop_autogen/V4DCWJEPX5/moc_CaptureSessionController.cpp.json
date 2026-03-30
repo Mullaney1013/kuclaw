@@ -1,0 +1,293 @@
+{
+    "classes": [
+        {
+            "className": "CaptureSessionController",
+            "enums": [
+                {
+                    "isClass": true,
+                    "isFlag": false,
+                    "lineNumber": 21,
+                    "name": "CaptureState",
+                    "values": [
+                        "Idle",
+                        "Selecting",
+                        "Selected",
+                        "Annotating",
+                        "Exporting",
+                        "Cancelled"
+                    ]
+                }
+            ],
+            "lineNumber": 17,
+            "methods": [
+                {
+                    "access": "public",
+                    "index": 4,
+                    "lineNumber": 44,
+                    "name": "beginSession",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "enabled",
+                            "type": "bool"
+                        }
+                    ],
+                    "index": 5,
+                    "lineNumber": 45,
+                    "name": "setWindowAutoSelectionEnabled",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "index": 6,
+                    "isConst": true,
+                    "lineNumber": 46,
+                    "name": "isWindowAutoSelectionEnabled",
+                    "returnType": "bool"
+                },
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "x",
+                            "type": "int"
+                        },
+                        {
+                            "name": "y",
+                            "type": "int"
+                        }
+                    ],
+                    "index": 7,
+                    "lineNumber": 47,
+                    "name": "moveSelectionTo",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "index": 8,
+                    "lineNumber": 48,
+                    "name": "copyFullScreen",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "index": 9,
+                    "lineNumber": 49,
+                    "name": "cancelSession",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "rect",
+                            "type": "QRect"
+                        }
+                    ],
+                    "index": 10,
+                    "lineNumber": 50,
+                    "name": "updateSelection",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "point",
+                            "type": "QPoint"
+                        },
+                        {
+                            "name": "trackWindow",
+                            "type": "bool"
+                        }
+                    ],
+                    "index": 11,
+                    "lineNumber": 51,
+                    "name": "updateCursorPoint",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "point",
+                            "type": "QPoint"
+                        }
+                    ],
+                    "index": 12,
+                    "isCloned": true,
+                    "lineNumber": 51,
+                    "name": "updateCursorPoint",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "dx",
+                            "type": "int"
+                        },
+                        {
+                            "name": "dy",
+                            "type": "int"
+                        }
+                    ],
+                    "index": 13,
+                    "lineNumber": 52,
+                    "name": "nudgeSelection",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "left",
+                            "type": "int"
+                        },
+                        {
+                            "name": "top",
+                            "type": "int"
+                        },
+                        {
+                            "name": "right",
+                            "type": "int"
+                        },
+                        {
+                            "name": "bottom",
+                            "type": "int"
+                        }
+                    ],
+                    "index": 14,
+                    "lineNumber": 53,
+                    "name": "resizeSelection",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "index": 15,
+                    "lineNumber": 54,
+                    "name": "enterAnnotating",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "index": 16,
+                    "lineNumber": 55,
+                    "name": "copyResultToClipboard",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "path",
+                            "type": "QString"
+                        }
+                    ],
+                    "index": 17,
+                    "lineNumber": 56,
+                    "name": "saveResultToFile",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "index": 18,
+                    "lineNumber": 57,
+                    "name": "pinResult",
+                    "returnType": "void"
+                }
+            ],
+            "object": true,
+            "properties": [
+                {
+                    "constant": false,
+                    "designable": true,
+                    "final": false,
+                    "index": 0,
+                    "lineNumber": 30,
+                    "name": "selectionRect",
+                    "notify": "selectionRectChanged",
+                    "read": "selectionRect",
+                    "required": false,
+                    "scriptable": true,
+                    "stored": true,
+                    "type": "QRect",
+                    "user": false
+                },
+                {
+                    "constant": false,
+                    "designable": true,
+                    "final": false,
+                    "index": 1,
+                    "lineNumber": 31,
+                    "name": "state",
+                    "notify": "stateChanged",
+                    "read": "state",
+                    "required": false,
+                    "scriptable": true,
+                    "stored": true,
+                    "type": "CaptureState",
+                    "user": false
+                }
+            ],
+            "qualifiedClassName": "CaptureSessionController",
+            "signals": [
+                {
+                    "access": "public",
+                    "index": 0,
+                    "lineNumber": 60,
+                    "name": "stateChanged",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "index": 1,
+                    "lineNumber": 61,
+                    "name": "selectionRectChanged",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "image",
+                            "type": "QImage"
+                        },
+                        {
+                            "name": "color",
+                            "type": "QColor"
+                        }
+                    ],
+                    "index": 2,
+                    "lineNumber": 62,
+                    "name": "magnifierUpdated",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "resultImage",
+                            "type": "QImage"
+                        }
+                    ],
+                    "index": 3,
+                    "lineNumber": 63,
+                    "name": "sessionCompleted",
+                    "returnType": "void"
+                }
+            ],
+            "superClasses": [
+                {
+                    "access": "public",
+                    "name": "QObject"
+                }
+            ]
+        }
+    ],
+    "inputFile": "CaptureSessionController.h",
+    "outputRevision": 69
+}

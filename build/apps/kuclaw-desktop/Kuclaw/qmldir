@@ -1,0 +1,14 @@
+module Kuclaw
+typeinfo kuclaw_desktop.qmltypes
+prefer :/qt/qml/Kuclaw/
+Main 1.0 app/Main.qml
+AppShell 1.0 app/AppShell.qml
+CaptureOverlay 1.0 capture/CaptureOverlay.qml
+CaptureOverlayWindow 1.0 capture/CaptureOverlayWindow.qml
+CaptureToolbar 1.0 capture/CaptureToolbar.qml
+Magnifier 1.0 capture/Magnifier.qml
+PinboardPanel 1.0 pin/PinboardPanel.qml
+RecentColorPanel 1.0 settings/RecentColorPanel.qml
+SettingsPanel 1.0 settings/SettingsPanel.qml
+depends QtQuick
+

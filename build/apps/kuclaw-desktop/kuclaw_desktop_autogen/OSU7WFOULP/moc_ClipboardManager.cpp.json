@@ -1,0 +1,33 @@
+{
+    "classes": [
+        {
+            "className": "ClipboardManager",
+            "lineNumber": 10,
+            "object": true,
+            "qualifiedClassName": "ClipboardManager",
+            "signals": [
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "payload",
+                            "type": "ClipboardPayload"
+                        }
+                    ],
+                    "index": 0,
+                    "lineNumber": 21,
+                    "name": "clipboardChanged",
+                    "returnType": "void"
+                }
+            ],
+            "superClasses": [
+                {
+                    "access": "public",
+                    "name": "QObject"
+                }
+            ]
+        }
+    ],
+    "inputFile": "ClipboardManager.h",
+    "outputRevision": 69
+}

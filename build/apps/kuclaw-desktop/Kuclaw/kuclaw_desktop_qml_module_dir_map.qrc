@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/">
+    <file alias="/qt/qml/Kuclaw">/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/Kuclaw</file>
+
+  </qresource>
+</RCC>

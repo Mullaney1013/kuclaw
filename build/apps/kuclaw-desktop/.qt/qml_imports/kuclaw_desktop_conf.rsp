@@ -1,0 +1,15 @@
+-rootPath
+/Users/Y/Documents/kuclaw/apps/kuclaw-desktop
+-cmake-output
+-output-file
+/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.qt/qml_imports/kuclaw_desktop_conf.cmake
+-importPath
+/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop
+-importPath
+/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/Kuclaw
+-importPath
+/usr/local/opt/qt/share/qt/qml
+-qrcFiles
+/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.qt/rcc/qmake_Kuclaw.qrc
+/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.qt/rcc/kuclaw_desktop_raw_qml_0.qrc
+/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/.qt/rcc/kuclaw_desktop_raw_qml_0_extra_qmldirs.qrc

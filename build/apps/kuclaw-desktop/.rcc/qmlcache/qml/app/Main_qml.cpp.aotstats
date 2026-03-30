@@ -1,0 +1,15 @@
+{
+    "formatRevision": 1,
+    "modules": [
+        {
+            "moduleFiles": [
+                {
+                    "entries": [
+                    ],
+                    "filePath": "/Users/Y/Documents/kuclaw/qml/app/Main.qml"
+                }
+            ],
+            "moduleId": "Kuclaw(kuclaw_desktop)"
+        }
+    ]
+}

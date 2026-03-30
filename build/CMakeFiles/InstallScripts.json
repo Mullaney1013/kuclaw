@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/Y/Documents/kuclaw/build/cmake_install.cmake",
+		"/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

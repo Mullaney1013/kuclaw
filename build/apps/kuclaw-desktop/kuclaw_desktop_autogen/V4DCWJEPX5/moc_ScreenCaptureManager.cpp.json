@@ -1,0 +1,18 @@
+{
+    "classes": [
+        {
+            "className": "ScreenCaptureManager",
+            "lineNumber": 12,
+            "object": true,
+            "qualifiedClassName": "ScreenCaptureManager",
+            "superClasses": [
+                {
+                    "access": "public",
+                    "name": "QObject"
+                }
+            ]
+        }
+    ],
+    "inputFile": "ScreenCaptureManager.h",
+    "outputRevision": 69
+}
