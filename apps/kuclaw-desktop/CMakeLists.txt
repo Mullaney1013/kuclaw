@@ -40,6 +40,8 @@ set(KUCLAW_QML_FILES
     ${CMAKE_SOURCE_DIR}/qml/app/Main.qml
     ${CMAKE_SOURCE_DIR}/qml/app/AppShell.qml
     ${CMAKE_SOURCE_DIR}/qml/app/AutomationSectionStyles.js
+    ${CMAKE_SOURCE_DIR}/qml/app/TitleBarControls.qml
+    ${CMAKE_SOURCE_DIR}/qml/app/ShellNavigation.js
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceSelection.js
     ${CMAKE_SOURCE_DIR}/qml/capture/CaptureOverlay.qml
     ${CMAKE_SOURCE_DIR}/qml/capture/CaptureOverlayWindow.qml
@@ -61,6 +63,14 @@ set_source_files_properties(
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/AutomationSectionStyles.js
     PROPERTIES QT_RESOURCE_ALIAS app/AutomationSectionStyles.js
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/qml/app/TitleBarControls.qml
+    PROPERTIES QT_RESOURCE_ALIAS app/TitleBarControls.qml
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/qml/app/ShellNavigation.js
+    PROPERTIES QT_RESOURCE_ALIAS app/ShellNavigation.js
 )
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceSelection.js

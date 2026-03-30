@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Window
 import Kuclaw
 import "AutomationSectionStyles.js" as AutomationSectionStyles
+import "ShellNavigation.js" as ShellNavigation
 import "WorkspaceSelection.js" as WorkspaceSelection
 
 ApplicationWindow {
@@ -11,6 +12,9 @@ ApplicationWindow {
     objectName: "KuclawMainWindow"
 
     property string currentPage: "workspace"
+    property bool sidebarExpanded: true
+    property var backHistory: []
+    property var forwardHistory: []
 
     width: 1440
     height: 900
@@ -54,13 +58,38 @@ ApplicationWindow {
 
     function openSettingsPage() {
         settingsMenu.close()
-        root.currentPage = "settings"
+        root.navigateToPage("settings")
+    }
+
+    function navigateToPage(page) {
+        const state = ShellNavigation.navigate(root.currentPage, root.backHistory, root.forwardHistory, page)
+        root.currentPage = state.currentPage
+        root.backHistory = state.backHistory
+        root.forwardHistory = state.forwardHistory
+    }
+
+    function goBack() {
+        const state = ShellNavigation.goBack(root.currentPage, root.backHistory, root.forwardHistory)
+        root.currentPage = state.currentPage
+        root.backHistory = state.backHistory
+        root.forwardHistory = state.forwardHistory
+    }
+
+    function goForward() {
+        const state = ShellNavigation.goForward(root.currentPage, root.backHistory, root.forwardHistory)
+        root.currentPage = state.currentPage
+        root.backHistory = state.backHistory
+        root.forwardHistory = state.forwardHistory
+    }
+
+    function toggleSidebar() {
+        root.sidebarExpanded = ShellNavigation.toggleSidebar(root.sidebarExpanded)
     }
 
     function selectWorkspace(index) {
         settingsMenu.close()
         root.workspaceItems = WorkspaceSelection.activateWorkspace(root.workspaceItems, index)
-        root.currentPage = "workspace"
+        root.navigateToPage("workspace")
     }
 
     property var workspaceItems: [
@@ -203,7 +232,7 @@ ApplicationWindow {
         spacing: 0
 
         Rectangle {
-            visible: root.currentPage !== "settings"
+            visible: root.currentPage !== "settings" && root.sidebarExpanded
             Layout.preferredWidth: 334
             Layout.fillHeight: true
             radius: 0
@@ -235,7 +264,7 @@ ApplicationWindow {
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: root.currentPage = "workspace"
+                                onClicked: root.navigateToPage("workspace")
                             }
                         }
 
@@ -247,7 +276,7 @@ ApplicationWindow {
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: root.currentPage = "pins"
+                                onClicked: root.navigateToPage("pins")
                             }
                         }
 
@@ -259,7 +288,7 @@ ApplicationWindow {
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: root.currentPage = "automations"
+                                onClicked: root.navigateToPage("automations")
                             }
                         }
                     }
@@ -774,7 +803,7 @@ ApplicationWindow {
                     SettingsPanel {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        onBackRequested: root.currentPage = "workspace"
+                        onBackRequested: root.navigateToPage("workspace")
                     }
                 }
             }
@@ -789,122 +818,28 @@ ApplicationWindow {
         z: 10
 
         MouseArea {
-            anchors.fill: parent
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.left: titleBarControls.right
+            anchors.leftMargin: 16
             acceptedButtons: Qt.LeftButton
             onPressed: mouse => root.startSystemMove()
         }
 
-        Row {
+        TitleBarControls {
+            id: titleBarControls
             anchors.left: parent.left
             anchors.leftMargin: 19
-            anchors.top: parent.top
-            anchors.topMargin: 22
-            spacing: 8
-
-            Repeater {
-                model: [
-                    { color: "#FF5F57", action: "close" },
-                    { color: "#FFBD2E", action: "minimize" },
-                    { color: "#28C840", action: "maximize" }
-                ]
-
-                delegate: Rectangle {
-                    required property var modelData
-                    width: 16
-                    height: 16
-                    radius: 8
-                    color: modelData.color
-                    border.width: 1
-                    border.color: Qt.darker(modelData.color, 1.05)
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (parent.modelData.action === "close") {
-                                root.close()
-                            } else if (parent.modelData.action === "minimize") {
-                                root.showMinimized()
-                            } else {
-                                root.toggleMaximized()
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Item {
-            anchors.left: parent.left
-            anchors.leftMargin: 113
-            anchors.top: parent.top
-            anchors.topMargin: 22
-            width: 90
-            height: 18
-
-            Rectangle {
-                width: 20
-                height: 16
-                radius: 4
-                color: "transparent"
-                border.color: "#8A8E93"
-                border.width: 1
-
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.leftMargin: 6
-                    anchors.top: parent.top
-                    anchors.topMargin: 3
-                    width: 1
-                    height: 10
-                    color: "#8A8E93"
-                }
-            }
-
-            Canvas {
-                id: backArrow
-                x: 61
-                y: 1
-                width: 11
-                height: 12
-
-                onPaint: {
-                    const ctx = getContext("2d")
-                    ctx.reset()
-                    ctx.strokeStyle = "#81868B"
-                    ctx.lineWidth = 1.35
-                    ctx.lineCap = "round"
-                    ctx.lineJoin = "round"
-                    ctx.beginPath()
-                    ctx.moveTo(8.5, 1.5)
-                    ctx.lineTo(3.5, 6)
-                    ctx.lineTo(8.5, 10.5)
-                    ctx.stroke()
-                }
-            }
-
-            Canvas {
-                id: forwardArrow
-                x: 74
-                y: 1
-                width: 11
-                height: 12
-                opacity: 0.48
-
-                onPaint: {
-                    const ctx = getContext("2d")
-                    ctx.reset()
-                    ctx.strokeStyle = "#81868B"
-                    ctx.lineWidth = 1.35
-                    ctx.lineCap = "round"
-                    ctx.lineJoin = "round"
-                    ctx.beginPath()
-                    ctx.moveTo(2.5, 1.5)
-                    ctx.lineTo(7.5, 6)
-                    ctx.lineTo(2.5, 10.5)
-                    ctx.stroke()
-                }
-            }
+            anchors.verticalCenter: parent.verticalCenter
+            backEnabled: root.backHistory.length > 0
+            forwardEnabled: root.forwardHistory.length > 0
+            onCloseRequested: root.close()
+            onMinimizeRequested: root.showMinimized()
+            onMaximizeRequested: root.toggleMaximized()
+            onSidebarToggleRequested: root.toggleSidebar()
+            onBackRequested: root.goBack()
+            onForwardRequested: root.goForward()
         }
     }
 }
