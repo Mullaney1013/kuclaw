@@ -36,6 +36,12 @@ TestCase {
         compare(count, 1)
     }
 
+    function test_sidebar_toggle_uses_exported_svg_asset() {
+        const subject = createSubject()
+
+        verify(subject.sidebarToggleIconTarget.source.toString().endsWith("/assets/icons/sidebar-toggle.svg"))
+    }
+
     function test_back_button_emits_signal_when_enabled() {
         const subject = createSubject({ backEnabled: true })
         let count = 0

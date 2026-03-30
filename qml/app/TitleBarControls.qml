@@ -7,6 +7,7 @@ Item {
     property bool forwardEnabled: false
 
     property alias sidebarToggleTarget: sidebarToggleMouseArea
+    property alias sidebarToggleIconTarget: sidebarToggleIcon
     property alias backButtonTarget: backButtonMouseArea
     property alias forwardButtonTarget: forwardButtonMouseArea
 
@@ -86,22 +87,15 @@ Item {
             width: 20
             height: 16
 
-            Rectangle {
-                anchors.fill: parent
-                radius: 4
-                color: "transparent"
-                border.color: "#8A8E93"
-                border.width: 1
-
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.leftMargin: 6
-                    anchors.top: parent.top
-                    anchors.topMargin: 3
-                    width: 1
-                    height: 10
-                    color: "#8A8E93"
-                }
+            Image {
+                id: sidebarToggleIcon
+                anchors.centerIn: parent
+                width: 20
+                height: 16
+                source: Qt.resolvedUrl("../../assets/icons/sidebar-toggle.svg")
+                fillMode: Image.PreserveAspectFit
+                sourceSize.width: 20
+                sourceSize.height: 16
             }
 
             MouseArea {
