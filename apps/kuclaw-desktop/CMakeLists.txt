@@ -200,6 +200,11 @@ if(APPLE)
             "-framework AVFoundation"
             "-framework ScreenCaptureKit"
     )
+
+    add_custom_command(TARGET ${KUCLAW_DESKTOP_TARGET} POST_BUILD
+        COMMAND ${CMAKE_SOURCE_DIR}/tests/check_qml_bundle_resources.sh
+        VERBATIM
+    )
 endif()
 
 set_target_properties(${KUCLAW_DESKTOP_TARGET} PROPERTIES
