@@ -15,7 +15,7 @@ fi
 
 missing=0
 
-for resource in "AutomationSectionStyles.js" "WorkspaceSelection.js"; do
+for resource in "AutomationSectionStyles.js" "WorkspaceSelection.js" "TitleBarLayout.js"; do
     found=0
     for dir in "${dirs[@]}"; do
         if [[ -f "${dir}/${resource}" ]]; then
