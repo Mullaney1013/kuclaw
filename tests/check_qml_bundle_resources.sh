@@ -1,9 +1,12 @@
 #!/bin/zsh
 set -euo pipefail
 
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+repo_root="$(cd "${script_dir}/.." && pwd)"
+
 DEFAULT_DIRS=(
-    "/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/Kuclaw/app"
-    "/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/Kuclaw.app/Contents/Resources/qml/Kuclaw/app"
+    "${repo_root}/build/apps/kuclaw-desktop/Kuclaw/app"
+    "${repo_root}/build/apps/kuclaw-desktop/Kuclaw.app/Contents/Resources/qml/Kuclaw/app"
 )
 
 dirs=()

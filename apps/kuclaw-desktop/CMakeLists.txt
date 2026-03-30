@@ -203,6 +203,8 @@ if(APPLE)
 
     add_custom_command(TARGET ${KUCLAW_DESKTOP_TARGET} POST_BUILD
         COMMAND ${CMAKE_SOURCE_DIR}/tests/check_qml_bundle_resources.sh
+            ${CMAKE_CURRENT_BINARY_DIR}/Kuclaw/app
+            ${CMAKE_CURRENT_BINARY_DIR}/Kuclaw.app/Contents/Resources/qml/Kuclaw/app
         VERBATIM
     )
 endif()
