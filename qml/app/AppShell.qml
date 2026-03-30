@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import Kuclaw
+import "WorkspaceSelection.js" as WorkspaceSelection
 
 ApplicationWindow {
     id: root
@@ -53,6 +54,12 @@ ApplicationWindow {
     function openSettingsPage() {
         settingsMenu.close()
         root.currentPage = "settings"
+    }
+
+    function selectWorkspace(index) {
+        settingsMenu.close()
+        root.workspaceItems = WorkspaceSelection.activateWorkspace(root.workspaceItems, index)
+        root.currentPage = "workspace"
     }
 
     property var workspaceItems: [
@@ -283,6 +290,7 @@ ApplicationWindow {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
+                            onClicked: root.selectWorkspace(index)
                         }
 
                         Column {

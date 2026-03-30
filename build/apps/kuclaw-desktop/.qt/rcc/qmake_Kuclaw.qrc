@@ -1,6 +1,0 @@
-<RCC>
-  <qresource prefix="/qt/qml/Kuclaw">
-    <file alias="qmldir">/Users/Y/Documents/kuclaw/build/apps/kuclaw-desktop/Kuclaw/qmldir</file>
-  </qresource>
-</RCC>
-
