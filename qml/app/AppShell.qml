@@ -235,7 +235,7 @@ ApplicationWindow {
 
         Behavior on width {
             NumberAnimation {
-                duration: 160
+                duration: WorkspaceShellState.motionDurationMs()
                 easing.type: Easing.OutCubic
             }
         }
@@ -327,14 +327,14 @@ ApplicationWindow {
 
         Behavior on x {
             NumberAnimation {
-                duration: 160
+                duration: WorkspaceShellState.motionDurationMs()
                 easing.type: Easing.OutCubic
             }
         }
 
         Behavior on width {
             NumberAnimation {
-                duration: 160
+                duration: WorkspaceShellState.motionDurationMs()
                 easing.type: Easing.OutCubic
             }
         }
@@ -394,7 +394,7 @@ ApplicationWindow {
 
             Behavior on width {
                 NumberAnimation {
-                    duration: 160
+                    duration: WorkspaceShellState.motionDurationMs()
                     easing.type: Easing.OutCubic
                 }
             }
@@ -410,7 +410,7 @@ ApplicationWindow {
 
             Behavior on anchors.leftMargin {
                 NumberAnimation {
-                    duration: 160
+                    duration: WorkspaceShellState.motionDurationMs()
                     easing.type: Easing.OutCubic
                 }
             }
