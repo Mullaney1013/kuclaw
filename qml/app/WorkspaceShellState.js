@@ -14,6 +14,13 @@ function motionEasingType() {
     return MOTION_EASING_TYPE
 }
 
+function mainContentGeometry(windowWidth, sidebarWidth) {
+    return {
+        x: sidebarWidth,
+        width: Math.max(0, windowWidth - sidebarWidth)
+    }
+}
+
 function project(state) {
     var mode = "collapsed"
     if (state.pinnedOpen) {
@@ -56,6 +63,7 @@ function reduce(currentState, event) {
             next.hoverRailVisible = true
         }
         break
+    case "RAIL_AREA_LEAVE":
     case "SIDEBAR_LEAVE":
         if (!next.pinnedOpen) {
             next.hoverRailVisible = false

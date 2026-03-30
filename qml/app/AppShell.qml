@@ -15,6 +15,7 @@ ApplicationWindow {
     property var shellState: WorkspaceShellState.createInitialState()
     property var backHistory: []
     property var forwardHistory: []
+    readonly property var mainContentGeometry: WorkspaceShellState.mainContentGeometry(root.width, root.shellState.sidebarWidth)
 
     readonly property real toolbarHeight: 56
     readonly property var sidebarItems: [
@@ -236,11 +237,14 @@ ApplicationWindow {
             }
         }
 
-        MouseArea {
+        HoverHandler {
             anchors.fill: parent
-            hoverEnabled: true
-            acceptedButtons: Qt.NoButton
-            onExited: root.dispatchShellEvent("SIDEBAR_LEAVE")
+            enabled: root.shellState.showHoverRail
+            onHoveredChanged: {
+                if (enabled && !hovered) {
+                    root.dispatchShellEvent("RAIL_AREA_LEAVE")
+                }
+            }
         }
 
         Column {
@@ -313,9 +317,9 @@ ApplicationWindow {
 
     Rectangle {
         id: mainContentPanel
-        x: root.shellState.sidebarWidth
+        x: root.mainContentGeometry.x
         y: 0
-        width: root.width - x
+        width: root.mainContentGeometry.width
         height: root.height
         radius: 26
         color: "#FFFFFF"

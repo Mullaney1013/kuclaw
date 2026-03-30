@@ -46,6 +46,13 @@ TestCase {
         compare(state.mode, "collapsed")
     }
 
+    function test_leaving_hover_rail_area_collapses_unpinned_rail() {
+        let state = WorkspaceShellState.createInitialState()
+        state = WorkspaceShellState.reduce(state, { type: "LEFT_EDGE_ENTER" })
+        state = WorkspaceShellState.reduce(state, { type: "RAIL_AREA_LEAVE" })
+        compare(state.mode, "collapsed")
+    }
+
     function test_pinned_sidebar_ignores_leave_events() {
         let state = WorkspaceShellState.createInitialState()
         state = WorkspaceShellState.reduce(state, { type: "TOGGLE_CLICKED" })
@@ -60,5 +67,11 @@ TestCase {
     function test_motion_spec_matches_figma_decision() {
         compare(WorkspaceShellState.motionDurationMs(), 220)
         compare(WorkspaceShellState.motionEasingType(), "OutCubic")
+    }
+
+    function test_main_content_geometry_uses_stable_sidebar_width_target() {
+        const geometry = WorkspaceShellState.mainContentGeometry(1440, 264)
+        compare(geometry.x, 264)
+        compare(geometry.width, 1176)
     }
 }
