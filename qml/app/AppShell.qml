@@ -238,7 +238,6 @@ ApplicationWindow {
         }
 
         HoverHandler {
-            anchors.fill: parent
             enabled: root.shellState.showHoverRail
             onHoveredChanged: {
                 if (enabled && !hovered) {
