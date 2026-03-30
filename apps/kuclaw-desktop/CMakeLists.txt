@@ -41,6 +41,7 @@ set(KUCLAW_QML_FILES
     ${CMAKE_SOURCE_DIR}/qml/app/AppShell.qml
     ${CMAKE_SOURCE_DIR}/qml/app/AutomationSectionStyles.js
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceShellState.js
+    ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceShellStyles.js
     ${CMAKE_SOURCE_DIR}/qml/app/TitleBarControls.qml
     ${CMAKE_SOURCE_DIR}/qml/app/ShellNavigation.js
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceSelection.js
@@ -76,6 +77,10 @@ set_source_files_properties(
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceShellState.js
     PROPERTIES QT_RESOURCE_ALIAS app/WorkspaceShellState.js
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceShellStyles.js
+    PROPERTIES QT_RESOURCE_ALIAS app/WorkspaceShellStyles.js
 )
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/TitleBarControls.qml

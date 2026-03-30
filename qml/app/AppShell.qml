@@ -5,6 +5,7 @@ import QtQuick.Window
 import Kuclaw
 import "ShellNavigation.js" as ShellNavigation
 import "WorkspaceShellState.js" as WorkspaceShellState
+import "WorkspaceShellStyles.js" as WorkspaceShellStyles
 
 ApplicationWindow {
     id: root
@@ -120,16 +121,18 @@ ApplicationWindow {
 
         readonly property bool selected: root.isSidebarItemSelected(pageKey)
         property bool hovered: buttonMouse.containsMouse
+        readonly property var metrics: WorkspaceShellStyles.expandedRowMetrics()
+        readonly property var chrome: WorkspaceShellStyles.expandedRowChrome(selected, hovered)
 
-        implicitWidth: 224
-        implicitHeight: 44
+        implicitWidth: metrics.width
+        implicitHeight: metrics.height
 
         Rectangle {
             anchors.fill: parent
-            radius: 14
-            color: expandedButton.selected ? "#FFFFFF" : (expandedButton.hovered ? "#FAFAFA" : "transparent")
-            border.color: (expandedButton.selected || expandedButton.hovered) ? "#EAEAEA" : "transparent"
-            border.width: 1
+            radius: expandedButton.metrics.radius
+            color: expandedButton.chrome.fill
+            border.color: expandedButton.chrome.border
+            border.width: expandedButton.chrome.borderWidth
         }
 
         MouseArea {
@@ -174,16 +177,18 @@ ApplicationWindow {
 
         readonly property bool selected: root.isSidebarItemSelected(pageKey)
         property bool hovered: iconMouse.containsMouse
+        readonly property var metrics: WorkspaceShellStyles.railIconMetrics()
+        readonly property var chrome: WorkspaceShellStyles.railIconChrome(selected, hovered)
 
-        implicitWidth: 44
-        implicitHeight: 44
+        implicitWidth: metrics.width
+        implicitHeight: metrics.height
 
         Rectangle {
             anchors.fill: parent
-            radius: 14
-            color: railButton.selected ? "#FFFFFF" : (railButton.hovered ? "#FAFAFA" : "transparent")
-            border.color: (railButton.selected || railButton.hovered) ? "#EAEAEA" : "transparent"
-            border.width: 1
+            radius: railButton.metrics.radius
+            color: railButton.chrome.fill
+            border.color: railButton.chrome.border
+            border.width: railButton.chrome.borderWidth
         }
 
         MouseArea {
