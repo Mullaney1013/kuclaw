@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import Kuclaw
+import "AutomationSectionStyles.js" as AutomationSectionStyles
 import "WorkspaceSelection.js" as WorkspaceSelection
 
 ApplicationWindow {
@@ -707,11 +708,11 @@ ApplicationWindow {
 
                                     delegate: Label {
                                         required property string modelData
-                                        required property int index
+                                        readonly property var sectionStyle: AutomationSectionStyles.styleForTitle(modelData)
                                         text: modelData
-                                        font.pixelSize: index === 0 ? 16 : 14
-                                        font.weight: index === 0 ? Font.Bold : Font.Medium
-                                        color: index === 0 ? "#2C2D2B" : "#64635E"
+                                        font.pixelSize: sectionStyle.pixelSize
+                                        font.weight: sectionStyle.bold ? Font.Bold : Font.Medium
+                                        color: sectionStyle.color
                                     }
                                 }
                             }
