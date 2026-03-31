@@ -36,10 +36,6 @@ private slots:
     }
 
     void attachUsesInjectedMetricsProvider() {
-        if (QGuiApplication::screens().isEmpty()) {
-            QSKIP("No screens available for QWindow creation.");
-        }
-
         WindowChromeViewModel viewModel(nullptr, fakeMetricsProvider);
         QWindow window;
 
@@ -50,6 +46,99 @@ private slots:
         QCOMPARE(viewModel.trafficLightsSafeWidth(), 78);
         QCOMPARE(viewModel.titleBarHeight(), 32);
         QCOMPARE(spy.count(), 1);
+    }
+
+    void attachRetriesUntilMetricsBecomeAvailable() {
+        int attachCount = 0;
+        WindowChromeViewModel viewModel(nullptr, [&attachCount](QWindow* window) {
+            Q_UNUSED(window);
+            ++attachCount;
+            if (attachCount < 3) {
+                return WindowChromeMetrics{};
+            }
+
+            return WindowChromeMetrics{
+                true,
+                78,
+                32,
+            };
+        });
+        QWindow window;
+
+        QSignalSpy spy(&viewModel, &WindowChromeViewModel::metricsChanged);
+        viewModel.attach(&window);
+
+        QTRY_VERIFY_WITH_TIMEOUT(attachCount >= 3, 1000);
+        QCOMPARE(viewModel.usesNativeTrafficLights(), true);
+        QCOMPARE(viewModel.trafficLightsSafeWidth(), 78);
+        QCOMPARE(viewModel.titleBarHeight(), 32);
+        QCOMPARE(spy.count(), 1);
+    }
+
+    void attachStopsRetryingAfterSuccess() {
+        int attachCount = 0;
+        WindowChromeViewModel viewModel(nullptr, [&attachCount](QWindow* window) {
+            Q_UNUSED(window);
+            ++attachCount;
+            if (attachCount == 1) {
+                return WindowChromeMetrics{};
+            }
+
+            return WindowChromeMetrics{
+                true,
+                78,
+                32,
+            };
+        });
+        QWindow window;
+
+        viewModel.attach(&window);
+        QTRY_COMPARE_WITH_TIMEOUT(attachCount, 2, 1000);
+
+        const int settledAttachCount = attachCount;
+        QTest::qWait(100);
+        QCOMPARE(attachCount, settledAttachCount);
+        QCOMPARE(viewModel.usesNativeTrafficLights(), true);
+    }
+
+    void attachReplacesPendingRetryWhenSwitchingWindows() {
+        int firstWindowCount = 0;
+        int secondWindowCount = 0;
+        QWindow firstWindow;
+        QWindow secondWindow;
+        WindowChromeViewModel viewModel(nullptr,
+                                        [&firstWindowCount, &secondWindowCount, &firstWindow,
+                                         &secondWindow](QWindow* window) {
+                                            if (window == &firstWindow) {
+                                                ++firstWindowCount;
+                                                return WindowChromeMetrics{};
+                                            }
+
+                                            if (window == &secondWindow) {
+                                                ++secondWindowCount;
+                                                return WindowChromeMetrics{
+                                                    true,
+                                                    78,
+                                                    32,
+                                                };
+                                            }
+
+                                            return WindowChromeMetrics{};
+                                        });
+
+        viewModel.attach(&firstWindow);
+        QCOMPARE(firstWindowCount, 1);
+
+        viewModel.attach(&secondWindow);
+        QTRY_VERIFY_WITH_TIMEOUT(secondWindowCount >= 1, 1000);
+
+        const int settledFirstWindowCount = firstWindowCount;
+        QTest::qWait(100);
+
+        QCOMPARE(firstWindowCount, settledFirstWindowCount);
+        QCOMPARE(viewModel.usesNativeTrafficLights(), true);
+        QCOMPARE(viewModel.trafficLightsSafeWidth(), 78);
+        QCOMPARE(viewModel.titleBarHeight(), 32);
     }
 
 #ifdef Q_OS_MACOS

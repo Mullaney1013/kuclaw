@@ -2,7 +2,12 @@
 
 #include <functional>
 
+#include <QEvent>
 #include <QObject>
+#include <QPointer>
+#include <QPlatformSurfaceEvent>
+#include <QTimer>
+#include <QWindow>
 
 #include "integration/platform/MacWindowChrome.h"
 
@@ -27,9 +32,21 @@ public:
 signals:
     void metricsChanged();
 
+protected:
+    bool eventFilter(QObject* watched, QEvent* event) override;
+
 private:
+    void attachToWindow(QWindow* window);
+    void tryAttach();
+    void scheduleRetry();
+    void resetRetryState();
+    bool shouldRetry() const;
+    void clearTrackedWindow();
     void setMetrics(const WindowChromeMetrics& metrics);
 
     AttachFunction attachFunction_;
     WindowChromeMetrics metrics_;
+    QPointer<QWindow> trackedWindow_;
+    QTimer retryTimer_;
+    int retryAttempts_ = 0;
 };
