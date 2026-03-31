@@ -162,6 +162,7 @@ private slots:
         QVERIFY(metrics.usesNativeTrafficLights);
         QVERIFY(metrics.trafficLightsSafeWidth > 0);
         QVERIFY(metrics.titleBarHeight > 0);
+        QVERIFY2(metrics.titleBarHeight < 120, "Native title bar height should stay in a realistic range for AppShell layout.");
     }
 #endif
 };

@@ -8,6 +8,30 @@ function controlsHostLeftMargin(metrics) {
     return showCustomTrafficLights(metrics) ? 19 : 0;
 }
 
+function controlsTopMargin(toolbarHeight, controlsHeight, metrics) {
+    if (!metrics || !metrics.usesNativeTrafficLights) {
+        return Math.round((toolbarHeight - controlsHeight) / 2);
+    }
+
+    return Math.max(0, Math.round((metrics.titleBarHeight - controlsHeight) / 2));
+}
+
+function toolbarLayerYOffset(topSafeInset, metrics) {
+    if (!metrics || !metrics.usesNativeTrafficLights) {
+        return 0;
+    }
+
+    return -Math.max(0, Math.round(topSafeInset));
+}
+
+function toolbarLayerHeight(toolbarHeight, topSafeInset, metrics) {
+    if (!metrics || !metrics.usesNativeTrafficLights) {
+        return toolbarHeight;
+    }
+
+    return toolbarHeight + Math.max(0, Math.round(topSafeInset));
+}
+
 function sidebarToggleLeftMargin(metrics) {
     if (!metrics || !metrics.usesNativeTrafficLights) {
         return 94;
@@ -32,6 +56,10 @@ function contentTopMargin(toolbarHeight, metrics) {
     return toolbarHeight + 18;
 }
 
+function useExpandedClientArea(platformOs) {
+    return platformOs === "osx" || platformOs === "macos";
+}
+
 function useFramelessWindow(platformOs) {
-    return platformOs !== "osx" && platformOs !== "macos";
+    return !useExpandedClientArea(platformOs);
 }

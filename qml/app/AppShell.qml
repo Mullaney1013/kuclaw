@@ -48,9 +48,15 @@ ApplicationWindow {
     height: 900
     visible: true
     title: "Kuclaw"
+    topPadding: 0
+    leftPadding: 0
+    rightPadding: 0
+    bottomPadding: 0
     flags: TitleBarLayout.useFramelessWindow(Qt.platform.os)
                ? (Qt.Window | Qt.FramelessWindowHint)
-               : Qt.Window
+               : (TitleBarLayout.useExpandedClientArea(Qt.platform.os)
+                      ? (Qt.Window | Qt.ExpandedClientAreaHint | Qt.NoTitleBarBackgroundHint)
+                      : Qt.Window)
     color: "#F5F5F5"
 
     Component.onCompleted: {
@@ -405,10 +411,12 @@ ApplicationWindow {
     }
 
     Item {
+        id: toolbarLayer
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        height: root.toolbarHeight
+        y: TitleBarLayout.toolbarLayerYOffset(SafeArea.margins.top, root.chromeMetrics)
+        height: TitleBarLayout.toolbarLayerHeight(root.toolbarHeight, SafeArea.margins.top, root.chromeMetrics)
         z: 10
 
         Rectangle {
@@ -459,7 +467,8 @@ ApplicationWindow {
             id: titleBarControls
             anchors.left: parent.left
             anchors.leftMargin: TitleBarLayout.controlsHostLeftMargin(root.chromeMetrics)
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.top: parent.top
+            anchors.topMargin: TitleBarLayout.controlsTopMargin(root.toolbarHeight, height, root.chromeMetrics)
             backEnabled: root.backHistory.length > 0
             forwardEnabled: root.forwardHistory.length > 0
             showTrafficLights: TitleBarLayout.showCustomTrafficLights(root.chromeMetrics)

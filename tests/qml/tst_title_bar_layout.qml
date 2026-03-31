@@ -14,6 +14,9 @@ TestCase {
 
         compare(TitleBarLayout.showCustomTrafficLights(metrics), false)
         compare(TitleBarLayout.controlsHostLeftMargin(metrics), 0)
+        compare(TitleBarLayout.controlsTopMargin(56, 20, metrics), 6)
+        compare(TitleBarLayout.toolbarLayerYOffset(28, metrics), -28)
+        compare(TitleBarLayout.toolbarLayerHeight(56, 28, metrics), 84)
         compare(TitleBarLayout.sidebarToggleLeftMargin(metrics), 90)
         compare(TitleBarLayout.sidebarTopPadding(56, metrics), 68)
         compare(TitleBarLayout.contentTopMargin(56, metrics), 74)
@@ -28,6 +31,9 @@ TestCase {
 
         compare(TitleBarLayout.showCustomTrafficLights(metrics), true)
         compare(TitleBarLayout.controlsHostLeftMargin(metrics), 19)
+        compare(TitleBarLayout.controlsTopMargin(56, 20, metrics), 18)
+        compare(TitleBarLayout.toolbarLayerYOffset(28, metrics), 0)
+        compare(TitleBarLayout.toolbarLayerHeight(56, 28, metrics), 56)
         compare(TitleBarLayout.sidebarToggleLeftMargin(metrics), 94)
         compare(TitleBarLayout.sidebarTopPadding(56, metrics), 90)
         compare(TitleBarLayout.contentTopMargin(56, metrics), 80)
@@ -35,6 +41,9 @@ TestCase {
 
 
     function test_macos_uses_native_window_frame_for_real_traffic_lights() {
+        compare(TitleBarLayout.useExpandedClientArea("osx"), true)
+        compare(TitleBarLayout.useExpandedClientArea("macos"), true)
+        compare(TitleBarLayout.useExpandedClientArea("windows"), false)
         compare(TitleBarLayout.useFramelessWindow("osx"), false)
         compare(TitleBarLayout.useFramelessWindow("macos"), false)
         compare(TitleBarLayout.useFramelessWindow("windows"), true)

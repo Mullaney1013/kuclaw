@@ -44,10 +44,11 @@ WindowChromeMetrics MacWindowChrome::attach(QWindow* window) {
     const CGFloat leftInset = NSMinX(closeFrame);
     const CGFloat rightEdge = NSMaxX(zoomFrame);
 
+    const CGFloat titleBarHeight = qMax(0.0, NSHeight(nsWindow.frame) - NSHeight(nsWindow.contentLayoutRect));
+
     metrics.usesNativeTrafficLights = true;
     metrics.trafficLightsSafeWidth = qCeil(rightEdge + leftInset);
-    metrics.titleBarHeight =
-        qCeil(NSHeight([nsWindow frameRectForContentRect:nsWindow.contentLayoutRect]));
+    metrics.titleBarHeight = qCeil(titleBarHeight);
 #else
     Q_UNUSED(window);
 #endif
