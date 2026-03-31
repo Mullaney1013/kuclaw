@@ -6,6 +6,7 @@ import Kuclaw
 import "ShellNavigation.js" as ShellNavigation
 import "WorkspaceShellState.js" as WorkspaceShellState
 import "WorkspaceShellStyles.js" as WorkspaceShellStyles
+import "TitleBarLayout.js" as TitleBarLayout
 
 ApplicationWindow {
     id: root
@@ -16,6 +17,11 @@ ApplicationWindow {
     property var backHistory: []
     property var forwardHistory: []
     readonly property var mainContentGeometry: WorkspaceShellState.mainContentGeometry(root.width, root.shellState.sidebarWidth)
+    readonly property var chromeMetrics: ({
+        usesNativeTrafficLights: windowChromeViewModel ? windowChromeViewModel.usesNativeTrafficLights : false,
+        trafficLightsSafeWidth: windowChromeViewModel ? windowChromeViewModel.trafficLightsSafeWidth : 0,
+        titleBarHeight: windowChromeViewModel ? windowChromeViewModel.titleBarHeight : 0
+    })
 
     readonly property real toolbarHeight: 56
     readonly property var expandedSidebarLayout: WorkspaceShellStyles.expandedSidebarLayoutMetrics()
@@ -44,6 +50,12 @@ ApplicationWindow {
     title: "Kuclaw"
     flags: Qt.Window | Qt.FramelessWindowHint
     color: "#F5F5F5"
+
+    Component.onCompleted: {
+        if (windowChromeViewModel) {
+            windowChromeViewModel.attach(root)
+        }
+    }
 
     function toggleMaximized() {
         if (root.visibility === Window.Maximized) {
@@ -261,7 +273,7 @@ ApplicationWindow {
         Column {
             visible: root.shellState.showExpandedSidebar
             anchors.top: parent.top
-            anchors.topMargin: root.toolbarHeight + root.expandedSidebarLayout.topMargin
+            anchors.topMargin: TitleBarLayout.sidebarTopPadding(root.toolbarHeight, root.chromeMetrics)
             anchors.left: parent.left
             anchors.leftMargin: root.expandedSidebarLayout.sideMargin
             anchors.right: parent.right
@@ -353,7 +365,7 @@ ApplicationWindow {
 
         Item {
             anchors.fill: parent
-            anchors.topMargin: root.toolbarHeight + 24
+            anchors.topMargin: TitleBarLayout.contentTopMargin(root.toolbarHeight, root.chromeMetrics)
             anchors.leftMargin: 32
             anchors.rightMargin: 32
             anchors.bottomMargin: 32
@@ -401,7 +413,10 @@ ApplicationWindow {
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            width: root.shellState.toolbarLeftWidth
+            width: Math.max(root.shellState.toolbarLeftWidth,
+                            root.chromeMetrics.usesNativeTrafficLights
+                                ? root.chromeMetrics.trafficLightsSafeWidth + 44
+                                : root.shellState.toolbarLeftWidth)
             color: "#F5F5F5"
 
             Behavior on width {
@@ -445,6 +460,8 @@ ApplicationWindow {
             anchors.verticalCenter: parent.verticalCenter
             backEnabled: root.backHistory.length > 0
             forwardEnabled: root.forwardHistory.length > 0
+            showTrafficLights: TitleBarLayout.showCustomTrafficLights(root.chromeMetrics)
+            sidebarToggleLeftMargin: TitleBarLayout.sidebarToggleLeftMargin(root.chromeMetrics)
             onCloseRequested: root.close()
             onMinimizeRequested: root.showMinimized()
             onMaximizeRequested: root.toggleMaximized()

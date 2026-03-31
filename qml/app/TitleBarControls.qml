@@ -5,6 +5,8 @@ Item {
 
     property bool backEnabled: false
     property bool forwardEnabled: false
+    property bool showTrafficLights: true
+    property real sidebarToggleLeftMargin: 94
     property string sidebarToggleIconSource: "qrc:/qt/qml/Kuclaw/assets/icons/sidebar-toggle.svg"
 
     property alias sidebarToggleTarget: sidebarToggleMouseArea
@@ -39,6 +41,7 @@ Item {
     }
 
     Row {
+        visible: root.showTrafficLights
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         spacing: 8
@@ -78,7 +81,7 @@ Item {
 
     Item {
         anchors.left: parent.left
-        anchors.leftMargin: 94
+        anchors.leftMargin: root.sidebarToggleLeftMargin
         anchors.verticalCenter: parent.verticalCenter
         width: 82
         height: 18

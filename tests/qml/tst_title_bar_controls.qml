@@ -44,6 +44,18 @@ TestCase {
                 subject.sidebarToggleIconSource.toString())
     }
 
+    function test_can_hide_custom_traffic_lights() {
+        const subject = createSubject({ showTrafficLights: false })
+
+        compare(subject.showTrafficLights, false)
+    }
+
+    function test_can_shift_sidebar_toggle_left_margin() {
+        const subject = createSubject({ sidebarToggleLeftMargin: 110 })
+
+        compare(subject.sidebarToggleLeftMargin, 110)
+    }
+
     function test_back_button_emits_signal_when_enabled() {
         const subject = createSubject({ backEnabled: true })
         let count = 0
