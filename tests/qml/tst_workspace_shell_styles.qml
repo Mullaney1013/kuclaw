@@ -28,6 +28,11 @@ TestCase {
         compare(layout.spacing, 18)
     }
 
+    function test_expanded_sidebar_settings_bottom_clearance_matches_spec() {
+        const metrics = WorkspaceShellStyles.expandedSidebarSettingsMetrics()
+        compare(metrics.bottomMargin, 16)
+    }
+
     function test_expanded_row_visual_state_can_disable_selection() {
         const visual = WorkspaceShellStyles.expandedRowVisualState(true, false, false)
         compare(visual.selected, false)

@@ -11,6 +11,7 @@ var EXPANDED_ROW_LABEL_SIZE = 15
 var EXPANDED_SIDEBAR_TOP_MARGIN = 36
 var EXPANDED_SIDEBAR_SIDE_MARGIN = 20
 var EXPANDED_SIDEBAR_BOTTOM_MARGIN = 44
+var EXPANDED_SIDEBAR_SETTINGS_BOTTOM_MARGIN = 16
 var EXPANDED_SIDEBAR_SPACING = 18
 
 var RAIL_ICON_WIDTH = 48
@@ -40,6 +41,12 @@ function expandedSidebarLayoutMetrics() {
         sideMargin: EXPANDED_SIDEBAR_SIDE_MARGIN,
         bottomMargin: EXPANDED_SIDEBAR_BOTTOM_MARGIN,
         spacing: EXPANDED_SIDEBAR_SPACING
+    }
+}
+
+function expandedSidebarSettingsMetrics() {
+    return {
+        bottomMargin: EXPANDED_SIDEBAR_SETTINGS_BOTTOM_MARGIN
     }
 }
 

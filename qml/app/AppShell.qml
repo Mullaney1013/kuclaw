@@ -19,6 +19,7 @@ ApplicationWindow {
 
     readonly property real toolbarHeight: 56
     readonly property var expandedSidebarLayout: WorkspaceShellStyles.expandedSidebarLayoutMetrics()
+    readonly property var expandedSidebarSettings: WorkspaceShellStyles.expandedSidebarSettingsMetrics()
     readonly property var sidebarItems: [
         {
             page: "home",
@@ -265,8 +266,6 @@ ApplicationWindow {
             anchors.leftMargin: root.expandedSidebarLayout.sideMargin
             anchors.right: parent.right
             anchors.rightMargin: root.expandedSidebarLayout.sideMargin
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: root.expandedSidebarLayout.bottomMargin
             spacing: root.expandedSidebarLayout.spacing
 
             Repeater {
@@ -279,19 +278,21 @@ ApplicationWindow {
                     iconSource: modelData.icon
                 }
             }
+        }
 
-            Item {
-                width: 1
-                height: Math.max(0, parent.height - settingsRow.height - 168)
-            }
-
-            ExpandedSidebarButton {
-                id: settingsRow
-                pageKey: "settings"
-                title: "Settings"
-                iconSource: "qrc:/qt/qml/Kuclaw/assets/icons/settings.svg"
-                selectionEnabled: false
-            }
+        ExpandedSidebarButton {
+            id: settingsRow
+            visible: root.shellState.showExpandedSidebar
+            anchors.left: parent.left
+            anchors.leftMargin: root.expandedSidebarLayout.sideMargin
+            anchors.right: parent.right
+            anchors.rightMargin: root.expandedSidebarLayout.sideMargin
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: root.expandedSidebarSettings.bottomMargin
+            pageKey: "settings"
+            title: "Settings"
+            iconSource: "qrc:/qt/qml/Kuclaw/assets/icons/settings.svg"
+            selectionEnabled: false
         }
 
         Column {
