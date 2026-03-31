@@ -15,9 +15,17 @@ TestCase {
         compare(content.spacing, 14)
         compare(content.iconSize, 20)
         compare(content.labelSize, 15)
-        compare(hover.fill, "#ADFFFFFF")
-        compare(hover.border, "#E8E3DA")
+        compare(hover.fill, "#B8FFFFFF")
+        compare(hover.border, "#E6E1D8")
         compare(hover.borderWidth, 1)
+    }
+
+
+    function test_expanded_row_selected_chrome_matches_spec() {
+        const selected = WorkspaceShellStyles.expandedRowChrome(true, false)
+        compare(selected.fill, "#FFFFFF")
+        compare(selected.border, "#E5E1D9")
+        compare(selected.borderWidth, 1)
     }
 
     function test_expanded_sidebar_layout_matches_spec() {
@@ -36,8 +44,8 @@ TestCase {
     function test_expanded_row_visual_state_can_disable_selection() {
         const visual = WorkspaceShellStyles.expandedRowVisualState(true, false, false)
         compare(visual.selected, false)
-        compare(visual.iconOpacity, 0.58)
-        compare(visual.labelColor, "#5C615E")
+        compare(visual.iconOpacity, 0.64)
+        compare(visual.labelColor, "#55616D")
         compare(visual.labelWeight, 400)
         compare(visual.chrome.fill, "transparent")
         compare(visual.chrome.border, "transparent")
@@ -47,11 +55,11 @@ TestCase {
     function test_expanded_row_visual_state_still_hovers_when_selection_disabled() {
         const visual = WorkspaceShellStyles.expandedRowVisualState(true, true, false)
         compare(visual.selected, false)
-        compare(visual.iconOpacity, 0.72)
-        compare(visual.labelColor, "#5C615E")
+        compare(visual.iconOpacity, 0.78)
+        compare(visual.labelColor, "#55616D")
         compare(visual.labelWeight, 400)
-        compare(visual.chrome.fill, "#ADFFFFFF")
-        compare(visual.chrome.border, "#E8E3DA")
+        compare(visual.chrome.fill, "#B8FFFFFF")
+        compare(visual.chrome.border, "#E6E1D8")
         compare(visual.chrome.borderWidth, 1)
     }
 

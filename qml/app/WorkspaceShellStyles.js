@@ -56,8 +56,8 @@ function expandedRowVisualState(selected, hovered, selectionEnabled) {
 
     return {
         selected: effectiveSelected,
-        iconOpacity: effectiveSelected ? 0.9 : (hovered ? 0.72 : 0.58),
-        labelColor: effectiveSelected ? "#262626" : "#5C615E",
+        iconOpacity: effectiveSelected ? 0.94 : (hovered ? 0.78 : 0.64),
+        labelColor: effectiveSelected ? "#262626" : "#55616D",
         labelWeight: effectiveSelected ? 500 : 400,
         chrome: expandedRowChrome(effectiveSelected, hovered)
     }
@@ -67,15 +67,15 @@ function expandedRowChrome(selected, hovered) {
     if (selected) {
         return {
             fill: "#FFFFFF",
-            border: "#EAEAEA",
+            border: "#E5E1D9",
             borderWidth: 1
         }
     }
 
     if (hovered) {
         return {
-            fill: "#ADFFFFFF",
-            border: "#E8E3DA",
+            fill: "#B8FFFFFF",
+            border: "#E6E1D8",
             borderWidth: 1
         }
     }
