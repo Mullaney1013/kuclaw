@@ -30,4 +30,11 @@ TestCase {
         compare(TitleBarLayout.sidebarTopPadding(56, metrics), 90)
         compare(TitleBarLayout.contentTopMargin(56, metrics), 80)
     }
+
+
+    function test_macos_uses_native_window_frame_for_real_traffic_lights() {
+        compare(TitleBarLayout.useFramelessWindow("osx"), false)
+        compare(TitleBarLayout.useFramelessWindow("macos"), false)
+        compare(TitleBarLayout.useFramelessWindow("windows"), true)
+    }
 }

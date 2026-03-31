@@ -48,7 +48,9 @@ ApplicationWindow {
     height: 900
     visible: true
     title: "Kuclaw"
-    flags: Qt.Window | Qt.FramelessWindowHint
+    flags: TitleBarLayout.useFramelessWindow(Qt.platform.os)
+               ? (Qt.Window | Qt.FramelessWindowHint)
+               : Qt.Window
     color: "#F5F5F5"
 
     Component.onCompleted: {

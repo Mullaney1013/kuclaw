@@ -27,3 +27,7 @@ function contentTopMargin(toolbarHeight, metrics) {
 
     return toolbarHeight + 18;
 }
+
+function useFramelessWindow(platformOs) {
+    return platformOs !== "osx" && platformOs !== "macos";
+}
