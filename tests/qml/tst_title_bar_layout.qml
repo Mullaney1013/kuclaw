@@ -18,7 +18,7 @@ TestCase {
         compare(TitleBarLayout.toolbarLayerYOffset(28, metrics), -28)
         compare(TitleBarLayout.toolbarLayerHeight(56, 28, metrics), 84)
         compare(TitleBarLayout.sidebarToggleLeftMargin(metrics), 90)
-        compare(TitleBarLayout.sidebarTopPadding(56, metrics), 68)
+        compare(TitleBarLayout.sidebarTopPadding(56, 28, metrics), 96)
         compare(TitleBarLayout.contentTopMargin(56, metrics), 74)
     }
 
@@ -35,7 +35,7 @@ TestCase {
         compare(TitleBarLayout.toolbarLayerYOffset(28, metrics), 0)
         compare(TitleBarLayout.toolbarLayerHeight(56, 28, metrics), 56)
         compare(TitleBarLayout.sidebarToggleLeftMargin(metrics), 94)
-        compare(TitleBarLayout.sidebarTopPadding(56, metrics), 90)
+        compare(TitleBarLayout.sidebarTopPadding(56, 28, metrics), 90)
         compare(TitleBarLayout.contentTopMargin(56, metrics), 80)
     }
 

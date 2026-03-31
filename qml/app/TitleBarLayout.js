@@ -40,12 +40,12 @@ function sidebarToggleLeftMargin(metrics) {
     return metrics.trafficLightsSafeWidth + 12;
 }
 
-function sidebarTopPadding(toolbarHeight, metrics) {
+function sidebarTopPadding(toolbarHeight, topSafeInset, metrics) {
     if (!metrics || !metrics.usesNativeTrafficLights) {
         return toolbarHeight + 34;
     }
 
-    return Math.max(toolbarHeight + 12, metrics.titleBarHeight + 36);
+    return toolbarLayerHeight(toolbarHeight, topSafeInset, metrics) + 12;
 }
 
 function contentTopMargin(toolbarHeight, metrics) {

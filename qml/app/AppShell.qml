@@ -281,7 +281,7 @@ ApplicationWindow {
         Column {
             visible: root.shellState.showExpandedSidebar
             anchors.top: parent.top
-            anchors.topMargin: TitleBarLayout.sidebarTopPadding(root.toolbarHeight, root.chromeMetrics)
+            anchors.topMargin: TitleBarLayout.sidebarTopPadding(root.toolbarHeight, SafeArea.margins.top, root.chromeMetrics)
             anchors.left: parent.left
             anchors.leftMargin: root.expandedSidebarLayout.sideMargin
             anchors.right: parent.right
