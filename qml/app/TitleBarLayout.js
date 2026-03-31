@@ -45,8 +45,8 @@ function sidebarTopPadding(toolbarHeight, topSafeInset, metrics) {
         return toolbarHeight + 34;
     }
 
-    return Math.max(toolbarLayerHeight(toolbarHeight, topSafeInset, metrics) + 12,
-                    toolbarHeight + metrics.titleBarHeight + 12);
+    return Math.max(toolbarLayerHeight(toolbarHeight, topSafeInset, metrics) + 28,
+                    toolbarHeight + metrics.titleBarHeight + 28);
 }
 
 function contentTopMargin(toolbarHeight, metrics) {
