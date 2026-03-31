@@ -29,8 +29,13 @@ set(KUCLAW_DESKTOP_SOURCES
 
 if(APPLE)
     list(APPEND KUCLAW_DESKTOP_SOURCES
+        ${CMAKE_SOURCE_DIR}/assets/icons/AppIcon.icns
         ${CMAKE_SOURCE_DIR}/src/integration/platform/MacWindowChrome.mm
         ${CMAKE_SOURCE_DIR}/src/integration/platform/NativeScreenHelperMac.mm
+    )
+    set_source_files_properties(
+        ${CMAKE_SOURCE_DIR}/assets/icons/AppIcon.icns
+        PROPERTIES MACOSX_PACKAGE_LOCATION Resources
     )
     set_source_files_properties(
         ${CMAKE_SOURCE_DIR}/src/integration/platform/MacWindowChrome.mm
@@ -164,6 +169,7 @@ if(APPLE)
     set_target_properties(${KUCLAW_DESKTOP_TARGET} PROPERTIES
         OBJCXX_STANDARD 20
         OBJCXX_STANDARD_REQUIRED ON
+        MACOSX_BUNDLE_ICON_FILE AppIcon.icns
     )
     target_compile_options(${KUCLAW_DESKTOP_TARGET}
         PRIVATE
