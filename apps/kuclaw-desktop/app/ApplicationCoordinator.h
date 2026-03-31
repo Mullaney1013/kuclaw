@@ -17,6 +17,7 @@
 #include "ui_bridge/viewmodels/ColorHistoryViewModel.h"
 #include "ui_bridge/viewmodels/PinboardViewModel.h"
 #include "ui_bridge/viewmodels/SettingsViewModel.h"
+#include "ui_bridge/viewmodels/WindowChromeViewModel.h"
 
 class ApplicationCoordinator final : public QObject {
     Q_OBJECT
@@ -34,6 +35,7 @@ public:
     ColorHistoryViewModel* colorHistoryViewModel();
     PinboardViewModel* pinboardViewModel();
     SettingsViewModel* settingsViewModel();
+    WindowChromeViewModel* windowChromeViewModel();
 
 public slots:
     void beginCapture();
@@ -68,6 +70,7 @@ private:
     ColorHistoryViewModel colorHistoryViewModel_;
     PinboardViewModel pinboardViewModel_;
     SettingsViewModel settingsViewModel_;
+    WindowChromeViewModel windowChromeViewModel_;
     QTimer reopenSuppressionTimer_;
     bool suppressNextReopen_ = false;
     bool initialized_ = false;

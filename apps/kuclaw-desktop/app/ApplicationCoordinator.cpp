@@ -38,7 +38,8 @@ ApplicationCoordinator::ApplicationCoordinator(QObject* parent)
       captureViewModel_(&captureSessionController_, this),
       colorHistoryViewModel_(&clipboardManager_, this),
       pinboardViewModel_(&pinWindowManager_, this),
-      settingsViewModel_(&settingsManager_, this) {
+      settingsViewModel_(&settingsManager_, this),
+      windowChromeViewModel_(this) {
     reopenSuppressionTimer_.setSingleShot(true);
     reopenSuppressionTimer_.setInterval(1200);
     connect(&reopenSuppressionTimer_, &QTimer::timeout, this, [this]() {
@@ -82,6 +83,10 @@ PinboardViewModel* ApplicationCoordinator::pinboardViewModel() {
 
 SettingsViewModel* ApplicationCoordinator::settingsViewModel() {
     return &settingsViewModel_;
+}
+
+WindowChromeViewModel* ApplicationCoordinator::windowChromeViewModel() {
+    return &windowChromeViewModel_;
 }
 
 void ApplicationCoordinator::beginCapture() {

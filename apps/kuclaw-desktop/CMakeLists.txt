@@ -22,15 +22,18 @@ set(KUCLAW_DESKTOP_SOURCES
     ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/ColorHistoryViewModel.cpp
     ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/PinboardViewModel.cpp
     ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/SettingsViewModel.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/WindowChromeViewModel.cpp
     ${CMAKE_SOURCE_DIR}/src/integration/platform/WinHotkeyRegistrar.cpp
     ${CMAKE_SOURCE_DIR}/src/integration/platform/NativeScreenHelperWin.cpp
 )
 
 if(APPLE)
     list(APPEND KUCLAW_DESKTOP_SOURCES
+        ${CMAKE_SOURCE_DIR}/src/integration/platform/MacWindowChrome.mm
         ${CMAKE_SOURCE_DIR}/src/integration/platform/NativeScreenHelperMac.mm
     )
     set_source_files_properties(
+        ${CMAKE_SOURCE_DIR}/src/integration/platform/MacWindowChrome.mm
         ${CMAKE_SOURCE_DIR}/src/integration/platform/NativeScreenHelperMac.mm
         PROPERTIES COMPILE_OPTIONS "-fobjc-arc"
     )
@@ -219,3 +222,40 @@ install(TARGETS ${KUCLAW_DESKTOP_TARGET}
     BUNDLE DESTINATION .
     RUNTIME DESTINATION bin
 )
+
+qt_add_executable(kuclaw_window_chrome_tests
+    ${CMAKE_SOURCE_DIR}/tests/cpp/tst_window_chrome_viewmodel.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/WindowChromeViewModel.cpp
+)
+
+target_include_directories(kuclaw_window_chrome_tests
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/src
+)
+
+target_link_libraries(kuclaw_window_chrome_tests
+    PRIVATE
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Test
+)
+
+if(APPLE)
+    target_sources(kuclaw_window_chrome_tests
+        PRIVATE
+            ${CMAKE_SOURCE_DIR}/src/integration/platform/MacWindowChrome.mm
+    )
+
+    set_source_files_properties(
+        ${CMAKE_SOURCE_DIR}/src/integration/platform/MacWindowChrome.mm
+        PROPERTIES COMPILE_OPTIONS "-fobjc-arc"
+    )
+
+    target_link_libraries(kuclaw_window_chrome_tests
+        PRIVATE
+            "-framework AppKit"
+    )
+endif()
+
+add_test(NAME kuclaw_window_chrome_tests COMMAND kuclaw_window_chrome_tests)
