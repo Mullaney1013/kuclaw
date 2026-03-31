@@ -120,11 +120,17 @@ ApplicationWindow {
         required property string pageKey
         required property string title
         required property string iconSource
+        property bool selectionEnabled: true
 
-        readonly property bool selected: root.isSidebarItemSelected(pageKey)
+        readonly property bool selected: selectionEnabled && root.isSidebarItemSelected(pageKey)
         property bool hovered: buttonMouse.containsMouse
         readonly property var metrics: WorkspaceShellStyles.expandedRowMetrics()
-        readonly property var chrome: WorkspaceShellStyles.expandedRowChrome(selected, hovered)
+        readonly property var visualState: WorkspaceShellStyles.expandedRowVisualState(
+                                             root.isSidebarItemSelected(pageKey),
+                                             hovered,
+                                             selectionEnabled
+                                         )
+        readonly property var chrome: visualState.chrome
 
         implicitWidth: metrics.width
         implicitHeight: metrics.height
@@ -156,7 +162,7 @@ ApplicationWindow {
                 Layout.preferredHeight: 18
                 fillMode: Image.PreserveAspectFit
                 source: expandedButton.iconSource
-                opacity: expandedButton.selected ? 0.9 : (expandedButton.hovered ? 0.72 : 0.58)
+                opacity: expandedButton.visualState.iconOpacity
                 sourceSize.width: 18
                 sourceSize.height: 18
             }
@@ -165,8 +171,8 @@ ApplicationWindow {
                 Layout.fillWidth: true
                 text: expandedButton.title
                 font.pixelSize: 16
-                font.weight: expandedButton.selected ? Font.Medium : Font.Normal
-                color: expandedButton.selected ? "#262626" : "#5C615E"
+                font.weight: expandedButton.visualState.labelWeight >= 500 ? Font.Medium : Font.Normal
+                color: expandedButton.visualState.labelColor
             }
         }
     }
@@ -280,6 +286,7 @@ ApplicationWindow {
                 pageKey: "settings"
                 title: "Settings"
                 iconSource: "qrc:/qt/qml/Kuclaw/assets/icons/settings.svg"
+                selectionEnabled: false
             }
         }
 

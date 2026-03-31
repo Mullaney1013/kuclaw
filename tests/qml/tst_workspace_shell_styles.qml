@@ -22,6 +22,28 @@ TestCase {
         compare(layout.spacing, 18)
     }
 
+    function test_expanded_row_visual_state_can_disable_selection() {
+        const visual = WorkspaceShellStyles.expandedRowVisualState(true, false, false)
+        compare(visual.selected, false)
+        compare(visual.iconOpacity, 0.58)
+        compare(visual.labelColor, "#5C615E")
+        compare(visual.labelWeight, 400)
+        compare(visual.chrome.fill, "transparent")
+        compare(visual.chrome.border, "transparent")
+        compare(visual.chrome.borderWidth, 0)
+    }
+
+    function test_expanded_row_visual_state_still_hovers_when_selection_disabled() {
+        const visual = WorkspaceShellStyles.expandedRowVisualState(true, true, false)
+        compare(visual.selected, false)
+        compare(visual.iconOpacity, 0.72)
+        compare(visual.labelColor, "#5C615E")
+        compare(visual.labelWeight, 400)
+        compare(visual.chrome.fill, "#ADFFFFFF")
+        compare(visual.chrome.border, "#E8E3DA")
+        compare(visual.chrome.borderWidth, 1)
+    }
+
     function test_rail_hover_matches_spec() {
         const metrics = WorkspaceShellStyles.railIconMetrics()
         const hover = WorkspaceShellStyles.railIconChrome(false, true)

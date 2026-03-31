@@ -30,6 +30,19 @@ function expandedSidebarLayoutMetrics() {
     }
 }
 
+function expandedRowVisualState(selected, hovered, selectionEnabled) {
+    const allowSelection = selectionEnabled !== false
+    const effectiveSelected = allowSelection && selected
+
+    return {
+        selected: effectiveSelected,
+        iconOpacity: effectiveSelected ? 0.9 : (hovered ? 0.72 : 0.58),
+        labelColor: effectiveSelected ? "#262626" : "#5C615E",
+        labelWeight: effectiveSelected ? 500 : 400,
+        chrome: expandedRowChrome(effectiveSelected, hovered)
+    }
+}
+
 function expandedRowChrome(selected, hovered) {
     if (selected) {
         return {
