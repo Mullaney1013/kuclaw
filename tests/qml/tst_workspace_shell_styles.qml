@@ -73,4 +73,9 @@ TestCase {
         compare(hover.border, "#E6E2DA")
         compare(hover.borderWidth, 1)
     }
+
+    function test_rail_settings_spacer_accounts_for_all_primary_items() {
+        const spacer = WorkspaceShellStyles.railSettingsSpacerHeight(784, 4, 40, 14, 40)
+        compare(spacer, 514)
+    }
 }

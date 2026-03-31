@@ -301,6 +301,7 @@ ApplicationWindow {
         }
 
         Column {
+            id: hoverRailColumn
             visible: root.shellState.showHoverRail
             anchors.top: parent.top
             anchors.topMargin: root.toolbarHeight + 34
@@ -321,7 +322,13 @@ ApplicationWindow {
 
             Item {
                 width: 1
-                height: Math.max(0, parent.height - settingsIcon.height - 174)
+                height: WorkspaceShellStyles.railSettingsSpacerHeight(
+                            hoverRailColumn.height,
+                            root.sidebarItems.length,
+                            settingsIcon.height,
+                            hoverRailColumn.spacing,
+                            settingsIcon.height
+                        )
             }
 
             RailSidebarButton {
