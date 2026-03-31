@@ -7,8 +7,14 @@ TestCase {
 
     function test_expanded_row_hover_matches_spec() {
         const metrics = WorkspaceShellStyles.expandedRowMetrics()
+        const content = WorkspaceShellStyles.expandedRowContentMetrics()
         const hover = WorkspaceShellStyles.expandedRowChrome(false, true)
+        compare(metrics.height, 48)
         compare(metrics.radius, 14)
+        compare(content.horizontalPadding, 16)
+        compare(content.spacing, 14)
+        compare(content.iconSize, 20)
+        compare(content.labelSize, 15)
         compare(hover.fill, "#ADFFFFFF")
         compare(hover.border, "#E8E3DA")
         compare(hover.borderWidth, 1)

@@ -1,8 +1,12 @@
 .pragma library
 
 var EXPANDED_ROW_WIDTH = 224
-var EXPANDED_ROW_HEIGHT = 44
+var EXPANDED_ROW_HEIGHT = 48
 var EXPANDED_ROW_RADIUS = 14
+var EXPANDED_ROW_CONTENT_HORIZONTAL_PADDING = 16
+var EXPANDED_ROW_CONTENT_SPACING = 14
+var EXPANDED_ROW_ICON_SIZE = 20
+var EXPANDED_ROW_LABEL_SIZE = 15
 
 var EXPANDED_SIDEBAR_TOP_MARGIN = 36
 var EXPANDED_SIDEBAR_SIDE_MARGIN = 20
@@ -18,6 +22,15 @@ function expandedRowMetrics() {
         width: EXPANDED_ROW_WIDTH,
         height: EXPANDED_ROW_HEIGHT,
         radius: EXPANDED_ROW_RADIUS
+    }
+}
+
+function expandedRowContentMetrics() {
+    return {
+        horizontalPadding: EXPANDED_ROW_CONTENT_HORIZONTAL_PADDING,
+        spacing: EXPANDED_ROW_CONTENT_SPACING,
+        iconSize: EXPANDED_ROW_ICON_SIZE,
+        labelSize: EXPANDED_ROW_LABEL_SIZE
     }
 }
 

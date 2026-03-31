@@ -125,6 +125,7 @@ ApplicationWindow {
         readonly property bool selected: selectionEnabled && root.isSidebarItemSelected(pageKey)
         property bool hovered: buttonMouse.containsMouse
         readonly property var metrics: WorkspaceShellStyles.expandedRowMetrics()
+        readonly property var contentMetrics: WorkspaceShellStyles.expandedRowContentMetrics()
         readonly property var visualState: WorkspaceShellStyles.expandedRowVisualState(
                                              root.isSidebarItemSelected(pageKey),
                                              hovered,
@@ -153,26 +154,29 @@ ApplicationWindow {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 14
-            anchors.rightMargin: 14
-            spacing: 12
+            anchors.leftMargin: expandedButton.contentMetrics.horizontalPadding
+            anchors.rightMargin: expandedButton.contentMetrics.horizontalPadding
+            spacing: expandedButton.contentMetrics.spacing
 
             Image {
-                Layout.preferredWidth: 18
-                Layout.preferredHeight: 18
+                Layout.preferredWidth: expandedButton.contentMetrics.iconSize
+                Layout.preferredHeight: expandedButton.contentMetrics.iconSize
+                Layout.alignment: Qt.AlignVCenter
                 fillMode: Image.PreserveAspectFit
                 source: expandedButton.iconSource
                 opacity: expandedButton.visualState.iconOpacity
-                sourceSize.width: 18
-                sourceSize.height: 18
+                sourceSize.width: expandedButton.contentMetrics.iconSize
+                sourceSize.height: expandedButton.contentMetrics.iconSize
             }
 
             Label {
                 Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
                 text: expandedButton.title
-                font.pixelSize: 16
+                font.pixelSize: expandedButton.contentMetrics.labelSize
                 font.weight: expandedButton.visualState.labelWeight >= 500 ? Font.Medium : Font.Normal
                 color: expandedButton.visualState.labelColor
+                verticalAlignment: Text.AlignVCenter
             }
         }
     }
