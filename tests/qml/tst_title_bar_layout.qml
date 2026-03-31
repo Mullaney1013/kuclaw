@@ -13,7 +13,8 @@ TestCase {
         }
 
         compare(TitleBarLayout.showCustomTrafficLights(metrics), false)
-        compare(TitleBarLayout.sidebarToggleLeftMargin(metrics), 94)
+        compare(TitleBarLayout.controlsHostLeftMargin(metrics), 0)
+        compare(TitleBarLayout.sidebarToggleLeftMargin(metrics), 90)
         compare(TitleBarLayout.sidebarTopPadding(56, metrics), 68)
         compare(TitleBarLayout.contentTopMargin(56, metrics), 74)
     }
@@ -26,6 +27,7 @@ TestCase {
         }
 
         compare(TitleBarLayout.showCustomTrafficLights(metrics), true)
+        compare(TitleBarLayout.controlsHostLeftMargin(metrics), 19)
         compare(TitleBarLayout.sidebarToggleLeftMargin(metrics), 94)
         compare(TitleBarLayout.sidebarTopPadding(56, metrics), 90)
         compare(TitleBarLayout.contentTopMargin(56, metrics), 80)

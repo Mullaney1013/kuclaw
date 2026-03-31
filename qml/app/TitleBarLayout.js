@@ -4,12 +4,16 @@ function showCustomTrafficLights(metrics) {
     return !metrics || !metrics.usesNativeTrafficLights;
 }
 
+function controlsHostLeftMargin(metrics) {
+    return showCustomTrafficLights(metrics) ? 19 : 0;
+}
+
 function sidebarToggleLeftMargin(metrics) {
     if (!metrics || !metrics.usesNativeTrafficLights) {
         return 94;
     }
 
-    return metrics.trafficLightsSafeWidth + 16;
+    return metrics.trafficLightsSafeWidth + 12;
 }
 
 function sidebarTopPadding(toolbarHeight, metrics) {

@@ -458,7 +458,7 @@ ApplicationWindow {
         TitleBarControls {
             id: titleBarControls
             anchors.left: parent.left
-            anchors.leftMargin: 19
+            anchors.leftMargin: TitleBarLayout.controlsHostLeftMargin(root.chromeMetrics)
             anchors.verticalCenter: parent.verticalCenter
             backEnabled: root.backHistory.length > 0
             forwardEnabled: root.forwardHistory.length > 0

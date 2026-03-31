@@ -7,6 +7,8 @@ Item {
     property bool forwardEnabled: false
     property bool showTrafficLights: true
     property real sidebarToggleLeftMargin: 94
+    property real backButtonX: 40
+    property real forwardButtonX: 56
     property string sidebarToggleIconSource: "qrc:/qt/qml/Kuclaw/assets/icons/sidebar-toggle.svg"
 
     property alias sidebarToggleTarget: sidebarToggleMouseArea
@@ -112,7 +114,7 @@ Item {
 
         Item {
             id: backButton
-            x: 48
+            x: root.backButtonX
             y: 0
             width: 12
             height: 14
@@ -146,7 +148,7 @@ Item {
 
         Item {
             id: forwardButton
-            x: 63
+            x: root.forwardButtonX
             y: 0
             width: 12
             height: 14

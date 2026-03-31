@@ -76,6 +76,14 @@ TestCase {
         compare(count, 1)
     }
 
+
+    function test_navigation_controls_use_refined_figma_spacing() {
+        const subject = createSubject()
+
+        compare(subject.backButtonTarget.parent.x, 40)
+        compare(subject.forwardButtonTarget.parent.x, 56)
+    }
+
     function test_forward_button_does_not_emit_signal_when_disabled() {
         const subject = createSubject({ forwardEnabled: false })
         let count = 0
