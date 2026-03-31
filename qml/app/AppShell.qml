@@ -18,6 +18,7 @@ ApplicationWindow {
     readonly property var mainContentGeometry: WorkspaceShellState.mainContentGeometry(root.width, root.shellState.sidebarWidth)
 
     readonly property real toolbarHeight: 56
+    readonly property var expandedSidebarLayout: WorkspaceShellStyles.expandedSidebarLayoutMetrics()
     readonly property var sidebarItems: [
         {
             page: "home",
@@ -249,14 +250,14 @@ ApplicationWindow {
         Column {
             visible: root.shellState.showExpandedSidebar
             anchors.top: parent.top
-            anchors.topMargin: root.toolbarHeight + 34
+            anchors.topMargin: root.toolbarHeight + root.expandedSidebarLayout.topMargin
             anchors.left: parent.left
-            anchors.leftMargin: 18
+            anchors.leftMargin: root.expandedSidebarLayout.sideMargin
             anchors.right: parent.right
-            anchors.rightMargin: 18
+            anchors.rightMargin: root.expandedSidebarLayout.sideMargin
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: 26
-            spacing: 12
+            anchors.bottomMargin: root.expandedSidebarLayout.bottomMargin
+            spacing: root.expandedSidebarLayout.spacing
 
             Repeater {
                 model: root.sidebarItems
