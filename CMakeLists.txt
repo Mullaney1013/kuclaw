@@ -26,10 +26,12 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS
     Qml
     Quick
     QuickControls2
+    Test
     Widgets
 )
 
 qt_standard_project_setup(REQUIRES 6.5)
 qt_policy(SET QTP0004 NEW)
+enable_testing()
 
 add_subdirectory(apps/kuclaw-desktop)

@@ -144,6 +144,8 @@ int main(int argc, char* argv[]) {
     engine.rootContext()->setContextProperty("colorHistoryViewModel", coordinator.colorHistoryViewModel());
     engine.rootContext()->setContextProperty("pinboardViewModel", coordinator.pinboardViewModel());
     engine.rootContext()->setContextProperty("settingsViewModel", coordinator.settingsViewModel());
+    engine.rootContext()->setContextProperty("windowChromeViewModel",
+                                             coordinator.windowChromeViewModel());
 
     QObject::connect(&app, &QCoreApplication::aboutToQuit,
                      &coordinator, &ApplicationCoordinator::shutdown);
