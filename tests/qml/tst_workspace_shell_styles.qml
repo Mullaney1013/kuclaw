@@ -24,7 +24,7 @@ TestCase {
         const layout = WorkspaceShellStyles.expandedSidebarLayoutMetrics()
         compare(layout.topMargin, 36)
         compare(layout.sideMargin, 20)
-        compare(layout.bottomMargin, 28)
+        compare(layout.bottomMargin, 44)
         compare(layout.spacing, 18)
     }
 
