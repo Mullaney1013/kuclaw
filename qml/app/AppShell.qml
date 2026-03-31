@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Window
 import Kuclaw
 import "ShellNavigation.js" as ShellNavigation
+import "WorkspaceSidebarItems.js" as WorkspaceSidebarItems
 import "WorkspaceShellState.js" as WorkspaceShellState
 import "WorkspaceShellStyles.js" as WorkspaceShellStyles
 import "TitleBarLayout.js" as TitleBarLayout
@@ -26,23 +27,7 @@ ApplicationWindow {
     readonly property real toolbarHeight: 56
     readonly property var expandedSidebarLayout: WorkspaceShellStyles.expandedSidebarLayoutMetrics()
     readonly property var expandedSidebarSettings: WorkspaceShellStyles.expandedSidebarSettingsMetrics()
-    readonly property var sidebarItems: [
-        {
-            page: "home",
-            title: "Home",
-            icon: "qrc:/qt/qml/Kuclaw/assets/icons/home.svg"
-        },
-        {
-            page: "projects",
-            title: "My Projects",
-            icon: "qrc:/qt/qml/Kuclaw/assets/icons/my-projects.svg"
-        },
-        {
-            page: "team",
-            title: "Team",
-            icon: "qrc:/qt/qml/Kuclaw/assets/icons/team.svg"
-        }
-    ]
+    readonly property var sidebarItems: WorkspaceSidebarItems.items()
 
     width: 1440
     height: 900

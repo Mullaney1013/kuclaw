@@ -49,6 +49,7 @@ set(KUCLAW_QML_FILES
     ${CMAKE_SOURCE_DIR}/qml/app/AppShell.qml
     ${CMAKE_SOURCE_DIR}/qml/app/AutomationSectionStyles.js
     ${CMAKE_SOURCE_DIR}/qml/app/TitleBarLayout.js
+    ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceSidebarItems.js
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceShellState.js
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceShellStyles.js
     ${CMAKE_SOURCE_DIR}/qml/app/TitleBarControls.qml
@@ -64,6 +65,7 @@ set(KUCLAW_QML_FILES
 )
 
 set(KUCLAW_RESOURCE_FILES
+    ${CMAKE_SOURCE_DIR}/assets/icons/locus.svg
     ${CMAKE_SOURCE_DIR}/assets/icons/home.svg
     ${CMAKE_SOURCE_DIR}/assets/icons/my-projects.svg
     ${CMAKE_SOURCE_DIR}/assets/icons/team.svg
@@ -88,6 +90,10 @@ set_source_files_properties(
     PROPERTIES QT_RESOURCE_ALIAS app/TitleBarLayout.js
 )
 set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceSidebarItems.js
+    PROPERTIES QT_RESOURCE_ALIAS app/WorkspaceSidebarItems.js
+)
+set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceShellState.js
     PROPERTIES QT_RESOURCE_ALIAS app/WorkspaceShellState.js
 )
@@ -106,6 +112,10 @@ set_source_files_properties(
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceSelection.js
     PROPERTIES QT_RESOURCE_ALIAS app/WorkspaceSelection.js
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/assets/icons/locus.svg
+    PROPERTIES QT_RESOURCE_ALIAS assets/icons/locus.svg
 )
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/assets/icons/home.svg
