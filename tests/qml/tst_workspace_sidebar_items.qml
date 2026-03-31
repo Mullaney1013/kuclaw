@@ -15,4 +15,12 @@ TestCase {
         compare(items[2].page, "projects")
         compare(items[3].page, "team")
     }
+
+    function test_all_sidebar_items_use_shared_qrc_svg_icons() {
+        const items = WorkspaceSidebarItems.items()
+        for (let i = 0; i < items.length; ++i) {
+            verify(items[i].icon.indexOf("qrc:/qt/qml/Kuclaw/assets/icons/") === 0)
+            verify(items[i].icon.endsWith(".svg"))
+        }
+    }
 }
