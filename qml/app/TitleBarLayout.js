@@ -16,7 +16,7 @@ function controlsTopMargin(toolbarHeight, controlsHeight, metrics) {
     return Math.max(0, Math.round((metrics.titleBarHeight - controlsHeight) / 2));
 }
 
-function toolbarLayerYOffset(topSafeInset, metrics) {
+function toolbarLayerTopMargin(topSafeInset, metrics) {
     if (!metrics || !metrics.usesNativeTrafficLights) {
         return 0;
     }

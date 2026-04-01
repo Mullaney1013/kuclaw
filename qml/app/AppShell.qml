@@ -404,7 +404,7 @@ ApplicationWindow {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        y: TitleBarLayout.toolbarLayerYOffset(SafeArea.margins.top, root.chromeMetrics)
+        anchors.topMargin: TitleBarLayout.toolbarLayerTopMargin(SafeArea.margins.top, root.chromeMetrics)
         height: TitleBarLayout.toolbarLayerHeight(root.toolbarHeight, SafeArea.margins.top, root.chromeMetrics)
         z: 10
 
