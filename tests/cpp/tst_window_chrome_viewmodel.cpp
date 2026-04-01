@@ -141,6 +141,28 @@ private slots:
         QCOMPARE(viewModel.titleBarHeight(), 32);
     }
 
+    void beginSystemDragReturnsFalseWithoutTrackedWindow() {
+        WindowChromeViewModel viewModel;
+
+        QVERIFY(!viewModel.beginSystemDrag());
+    }
+
+    void beginSystemDragUsesInjectedDragProviderForTrackedWindow() {
+        int dragCount = 0;
+        QWindow window;
+        WindowChromeViewModel viewModel(nullptr,
+                                        fakeMetricsProvider,
+                                        [&dragCount, &window](QWindow* trackedWindow) {
+                                            ++dragCount;
+                                            return trackedWindow == &window;
+                                        });
+
+        viewModel.attach(&window);
+
+        QVERIFY(viewModel.beginSystemDrag());
+        QCOMPARE(dragCount, 1);
+    }
+
 #ifdef Q_OS_MACOS
     void macWindowChromeReturnsUsableMetricsForNativeWindow() {
         if (QGuiApplication::platformName() != "cocoa") {
@@ -163,6 +185,48 @@ private slots:
         QVERIFY(metrics.trafficLightsSafeWidth > 0);
         QVERIFY(metrics.titleBarHeight > 0);
         QVERIFY2(metrics.titleBarHeight < 120, "Native title bar height should stay in a realistic range for AppShell layout.");
+    }
+
+    void macWindowChromeInstallsNativeDragRegionForNativeWindow() {
+        if (QGuiApplication::platformName() != "cocoa") {
+            QSKIP("Native drag region verification requires the cocoa platform plugin.");
+        }
+
+        if (QGuiApplication::screens().isEmpty()) {
+            QSKIP("No screens available for native drag region verification.");
+        }
+
+        QWindow window;
+        window.resize(640, 480);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        MacWindowChrome chrome;
+        chrome.attach(&window);
+
+        QVERIFY2(chrome.hasTitleBarDragRegion(&window),
+                 "Native title-bar drag region should be installed for expanded AppShell windows.");
+    }
+
+    void macWindowChromeDragRegionCapturesHitTestForNativeWindow() {
+        if (QGuiApplication::platformName() != "cocoa") {
+            QSKIP("Native drag region hit-test verification requires the cocoa platform plugin.");
+        }
+
+        if (QGuiApplication::screens().isEmpty()) {
+            QSKIP("No screens available for native drag region verification.");
+        }
+
+        QWindow window;
+        window.resize(640, 480);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        MacWindowChrome chrome;
+        chrome.attach(&window);
+
+        QVERIFY2(chrome.titleBarDragRegionCapturesHitTest(&window),
+                 "Native title-bar drag region should win hit-testing in the blank AppShell title-bar area.");
     }
 #endif
 };

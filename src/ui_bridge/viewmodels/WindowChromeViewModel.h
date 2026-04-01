@@ -19,15 +19,18 @@ class WindowChromeViewModel final : public QObject {
 
 public:
     using AttachFunction = std::function<WindowChromeMetrics(QWindow*)>;
+    using DragFunction = std::function<bool(QWindow*)>;
 
     explicit WindowChromeViewModel(QObject* parent = nullptr,
-                                   AttachFunction attachFunction = {});
+                                   AttachFunction attachFunction = {},
+                                   DragFunction dragFunction = {});
 
     bool usesNativeTrafficLights() const;
     int trafficLightsSafeWidth() const;
     int titleBarHeight() const;
 
     Q_INVOKABLE void attach(QObject* windowObject);
+    Q_INVOKABLE bool beginSystemDrag();
 
 signals:
     void metricsChanged();
@@ -45,6 +48,7 @@ private:
     void setMetrics(const WindowChromeMetrics& metrics);
 
     AttachFunction attachFunction_;
+    DragFunction dragFunction_;
     WindowChromeMetrics metrics_;
     QPointer<QWindow> trackedWindow_;
     QTimer retryTimer_;

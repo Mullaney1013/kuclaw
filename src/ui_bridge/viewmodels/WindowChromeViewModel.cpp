@@ -19,10 +19,24 @@ WindowChromeMetrics defaultAttachMetrics(QWindow* window) {
     return {};
 #endif
 }
+
+bool defaultBeginSystemDrag(QWindow* window) {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    MacWindowChrome chrome;
+    return chrome.beginSystemDrag(window);
+#else
+    Q_UNUSED(window);
+    return false;
+#endif
+}
 }  // namespace
 
-WindowChromeViewModel::WindowChromeViewModel(QObject* parent, AttachFunction attachFunction)
-    : QObject(parent), attachFunction_(std::move(attachFunction)) {
+WindowChromeViewModel::WindowChromeViewModel(QObject* parent,
+                                             AttachFunction attachFunction,
+                                             DragFunction dragFunction)
+    : QObject(parent),
+      attachFunction_(std::move(attachFunction)),
+      dragFunction_(std::move(dragFunction)) {
     retryTimer_.setSingleShot(true);
     connect(&retryTimer_, &QTimer::timeout, this, &WindowChromeViewModel::tryAttach);
 }
@@ -49,6 +63,14 @@ void WindowChromeViewModel::attach(QObject* windowObject) {
     }
 
     attachToWindow(window);
+}
+
+bool WindowChromeViewModel::beginSystemDrag() {
+    if (trackedWindow_ == nullptr) {
+        return false;
+    }
+
+    return dragFunction_ ? dragFunction_(trackedWindow_) : defaultBeginSystemDrag(trackedWindow_);
 }
 
 void WindowChromeViewModel::attachToWindow(QWindow* window) {

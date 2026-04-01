@@ -49,6 +49,7 @@ set(KUCLAW_QML_FILES
     ${CMAKE_SOURCE_DIR}/qml/app/AppShell.qml
     ${CMAKE_SOURCE_DIR}/qml/app/AutomationSectionStyles.js
     ${CMAKE_SOURCE_DIR}/qml/app/TitleBarLayout.js
+    ${CMAKE_SOURCE_DIR}/qml/app/TitleBarDragRegion.qml
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceSidebarItems.js
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceShellState.js
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceShellStyles.js
@@ -88,6 +89,10 @@ set_source_files_properties(
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/TitleBarLayout.js
     PROPERTIES QT_RESOURCE_ALIAS app/TitleBarLayout.js
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/qml/app/TitleBarDragRegion.qml
+    PROPERTIES QT_RESOURCE_ALIAS app/TitleBarDragRegion.qml
 )
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/WorkspaceSidebarItems.js

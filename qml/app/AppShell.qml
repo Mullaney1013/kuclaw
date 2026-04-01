@@ -442,14 +442,22 @@ ApplicationWindow {
             }
         }
 
-        MouseArea {
+        TitleBarDragRegion {
             anchors.top: parent.top
             anchors.right: parent.right
             anchors.bottom: parent.bottom
             anchors.left: titleBarControls.right
             anchors.leftMargin: 16
-            acceptedButtons: Qt.LeftButton
-            onPressed: mouse => root.startSystemMove()
+            interactionEnabled: !root.chromeMetrics.usesNativeTrafficLights
+            beginDragOnPress: root.chromeMetrics.usesNativeTrafficLights
+            systemMoveHandler: function() {
+                if (windowChromeViewModel && windowChromeViewModel.beginSystemDrag()) {
+                    return true
+                }
+                root.startSystemMove()
+                return true
+            }
+            onDragRequested: root.startSystemMove()
         }
 
         TitleBarControls {

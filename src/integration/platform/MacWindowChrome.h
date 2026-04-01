@@ -11,4 +11,7 @@ struct WindowChromeMetrics {
 class MacWindowChrome final {
 public:
     WindowChromeMetrics attach(QWindow* window);
+    bool beginSystemDrag(QWindow* window);
+    bool hasTitleBarDragRegion(QWindow* window) const;
+    bool titleBarDragRegionCapturesHitTest(QWindow* window) const;
 };
