@@ -206,6 +206,8 @@ private slots:
 
         QVERIFY2(chrome.hasTitleBarDragRegion(&window),
                  "Native title-bar drag region should be installed for expanded AppShell windows.");
+        QVERIFY2(chrome.hasTitleBarDragMonitor(&window),
+                 "Native title-bar drag monitor should be installed for expanded AppShell windows.");
     }
 
     void macWindowChromeDragRegionCapturesHitTestForNativeWindow() {
@@ -227,6 +229,27 @@ private slots:
 
         QVERIFY2(chrome.titleBarDragRegionCapturesHitTest(&window),
                  "Native title-bar drag region should win hit-testing in the blank AppShell title-bar area.");
+    }
+
+    void macWindowChromeDragRegionCapturesTrailingHitTestForNativeWindow() {
+        if (QGuiApplication::platformName() != "cocoa") {
+            QSKIP("Native trailing drag region verification requires the cocoa platform plugin.");
+        }
+
+        if (QGuiApplication::screens().isEmpty()) {
+            QSKIP("No screens available for native drag region verification.");
+        }
+
+        QWindow window;
+        window.resize(640, 480);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        MacWindowChrome chrome;
+        chrome.attach(&window);
+
+        QVERIFY2(chrome.titleBarDragRegionCapturesTrailingHitTest(&window),
+                 "Native title-bar drag region should also win hit-testing near the trailing edge of the AppShell title bar.");
     }
 #endif
 };

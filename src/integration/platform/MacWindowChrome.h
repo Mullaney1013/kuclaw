@@ -14,4 +14,6 @@ public:
     bool beginSystemDrag(QWindow* window);
     bool hasTitleBarDragRegion(QWindow* window) const;
     bool titleBarDragRegionCapturesHitTest(QWindow* window) const;
+    bool titleBarDragRegionCapturesTrailingHitTest(QWindow* window) const;
+    bool hasTitleBarDragMonitor(QWindow* window) const;
 };

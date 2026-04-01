@@ -59,34 +59,147 @@ namespace {
 constexpr CGFloat kTitleBarDragRegionStartX = 192.0;
 constexpr CGFloat kTitleBarDragRegionMinHeight = 56.0;
 const void* kWindowDragViewAssociationKey = &kWindowDragViewAssociationKey;
+const void* kWindowDragMonitorAssociationKey = &kWindowDragMonitorAssociationKey;
+
+static NSView* titleBarContainerView(NSWindow* nsWindow) {
+    if (nsWindow == nil) {
+        return nil;
+    }
+
+    NSButton* closeButton = [nsWindow standardWindowButton:NSWindowCloseButton];
+    NSView* titleBarView = closeButton.superview;
+    if (titleBarView != nil && titleBarView.superview != nil) {
+        return titleBarView.superview;
+    }
+
+    return titleBarView;
+}
+
+static NSView* dragRegionHostViewForWindow(NSWindow* nsWindow, NSView* nativeView) {
+    NSView* titleBarContainer = titleBarContainerView(nsWindow);
+    if (titleBarContainer != nil) {
+        return titleBarContainer;
+    }
+
+    if (nativeView != nil && nativeView.superview != nil) {
+        return nativeView.superview;
+    }
+
+    if (nativeView != nil) {
+        return nativeView;
+    }
+
+    if (nsWindow != nil && nsWindow.contentView != nil) {
+        return nsWindow.contentView;
+    }
+
+    return nil;
+}
 
 static NSRect dragRegionFrameForView(NSView* nativeView, CGFloat titleBarHeight) {
-    const CGFloat safeHeight = qMax(titleBarHeight, kTitleBarDragRegionMinHeight);
+    const CGFloat hostHeight = NSHeight(nativeView.bounds);
+    const CGFloat safeHeight = qMin(hostHeight, qMax(titleBarHeight, kTitleBarDragRegionMinHeight));
     const CGFloat clampedWidth = qMax<CGFloat>(0.0, NSWidth(nativeView.bounds) - kTitleBarDragRegionStartX);
-    const CGFloat topAlignedY = qMax<CGFloat>(0.0, NSHeight(nativeView.bounds) - safeHeight);
+    const CGFloat topAlignedY = qMax<CGFloat>(0.0, hostHeight - safeHeight);
     return NSMakeRect(kTitleBarDragRegionStartX, topAlignedY, clampedWidth, safeHeight);
 }
 
-static KuclawWindowDragView* dragRegionViewForNativeView(NSView* nativeView) {
-    return (KuclawWindowDragView*)objc_getAssociatedObject(nativeView, kWindowDragViewAssociationKey);
+static NSRect dragRegionRectForWindow(NSWindow* nsWindow, CGFloat titleBarHeight) {
+    if (nsWindow == nil) {
+        return NSZeroRect;
+    }
+
+    const CGFloat windowWidth = NSWidth(nsWindow.frame);
+    const CGFloat windowHeight = NSHeight(nsWindow.frame);
+    const CGFloat safeHeight = qMin(windowHeight, qMax(titleBarHeight, kTitleBarDragRegionMinHeight));
+    const CGFloat clampedWidth = qMax<CGFloat>(0.0, windowWidth - kTitleBarDragRegionStartX);
+    const CGFloat topAlignedY = qMax<CGFloat>(0.0, windowHeight - safeHeight);
+    return NSMakeRect(kTitleBarDragRegionStartX, topAlignedY, clampedWidth, safeHeight);
 }
 
-static void installOrUpdateDragRegion(NSView* nativeView, CGFloat titleBarHeight) {
-    if (nativeView == nil) {
+static KuclawWindowDragView* dragRegionViewForWindow(NSWindow* nsWindow) {
+    if (nsWindow == nil) {
+        return nil;
+    }
+
+    return (KuclawWindowDragView*)objc_getAssociatedObject(nsWindow, kWindowDragViewAssociationKey);
+}
+
+static id dragRegionMonitorForWindow(NSWindow* nsWindow) {
+    if (nsWindow == nil) {
+        return nil;
+    }
+
+    return objc_getAssociatedObject(nsWindow, kWindowDragMonitorAssociationKey);
+}
+
+static void installOrUpdateDragMonitor(NSWindow* nsWindow, CGFloat titleBarHeight) {
+    if (nsWindow == nil) {
         return;
     }
 
-    KuclawWindowDragView* dragView = dragRegionViewForNativeView(nativeView);
+    id existingMonitor = dragRegionMonitorForWindow(nsWindow);
+    if (existingMonitor != nil) {
+        [NSEvent removeMonitor:existingMonitor];
+        objc_setAssociatedObject(nsWindow, kWindowDragMonitorAssociationKey, nil, OBJC_ASSOCIATION_ASSIGN);
+    }
+
+    __weak NSWindow* weakWindow = nsWindow;
+    id monitor =
+        [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskLeftMouseDown
+                                              handler:^NSEvent* _Nullable(NSEvent* _Nonnull event) {
+                                                  NSWindow* strongWindow = weakWindow;
+                                                  if (strongWindow == nil || event == nil || event.window != strongWindow) {
+                                                      return event;
+                                                  }
+
+                                                  const CGFloat currentTitleBarHeight =
+                                                      qMax(0.0, NSHeight(strongWindow.frame)
+                                                                     - NSHeight(strongWindow.contentLayoutRect));
+                                                  const NSRect dragRect =
+                                                      dragRegionRectForWindow(strongWindow, currentTitleBarHeight);
+                                                  if (!NSPointInRect(event.locationInWindow, dragRect)) {
+                                                      return event;
+                                                  }
+
+                                                  [strongWindow performWindowDragWithEvent:event];
+                                                  return nil;
+                                              }];
+
+    objc_setAssociatedObject(nsWindow,
+                             kWindowDragMonitorAssociationKey,
+                             monitor,
+                             OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+static void installOrUpdateDragRegion(NSWindow* nsWindow, NSView* nativeView, CGFloat titleBarHeight) {
+    NSView* hostView = dragRegionHostViewForWindow(nsWindow, nativeView);
+    if (hostView == nil || nsWindow == nil) {
+        return;
+    }
+
+    KuclawWindowDragView* dragView = dragRegionViewForWindow(nsWindow);
     if (dragView == nil) {
         dragView = [[KuclawWindowDragView alloc] initWithFrame:NSZeroRect];
-        objc_setAssociatedObject(nativeView,
+        objc_setAssociatedObject(nsWindow,
                                  kWindowDragViewAssociationKey,
                                  dragView,
                                  OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        [nativeView addSubview:dragView positioned:NSWindowAbove relativeTo:nil];
     }
 
-    dragView.frame = dragRegionFrameForView(nativeView, titleBarHeight);
+    NSView* relativeView = nil;
+    for (NSView* subview in hostView.subviews.reverseObjectEnumerator) {
+        if (subview != dragView) {
+            relativeView = subview;
+            break;
+        }
+    }
+    if (dragView.superview != hostView) {
+        [dragView removeFromSuperview];
+    }
+    [hostView addSubview:dragView positioned:NSWindowAbove relativeTo:relativeView];
+
+    dragView.frame = dragRegionFrameForView(hostView, titleBarHeight);
     dragView.hidden = NSIsEmptyRect(dragView.frame);
 }
 }  // namespace
@@ -137,7 +250,8 @@ WindowChromeMetrics MacWindowChrome::attach(QWindow* window) {
     metrics.trafficLightsSafeWidth = qCeil(rightEdge + leftInset);
     metrics.titleBarHeight = qCeil(titleBarHeight);
 
-    installOrUpdateDragRegion(nativeView, titleBarHeight);
+    installOrUpdateDragRegion(nsWindow, nativeView, titleBarHeight);
+    installOrUpdateDragMonitor(nsWindow, titleBarHeight);
 #else
     Q_UNUSED(window);
 #endif
@@ -200,7 +314,8 @@ bool MacWindowChrome::hasTitleBarDragRegion(QWindow* window) const {
         return false;
     }
 
-    KuclawWindowDragView* dragView = dragRegionViewForNativeView(nativeView);
+    NSWindow* nsWindow = nativeView.window;
+    KuclawWindowDragView* dragView = dragRegionViewForWindow(nsWindow);
     return dragView != nil && !dragView.hidden && !NSIsEmptyRect(dragView.frame);
 #else
     Q_UNUSED(window);
@@ -221,19 +336,76 @@ bool MacWindowChrome::titleBarDragRegionCapturesHitTest(QWindow* window) const {
     }
 
     auto* nativeView = (__bridge NSView*)(reinterpret_cast<void*>(nativeId));
-    if (nativeView == nil) {
+    if (nativeView == nil || nativeView.window == nil) {
         return false;
     }
 
-    KuclawWindowDragView* dragView = dragRegionViewForNativeView(nativeView);
-    if (dragView == nil || dragView.hidden || NSIsEmptyRect(dragView.frame)) {
+    NSWindow* nsWindow = nativeView.window;
+    const CGFloat titleBarHeight =
+        qMax(0.0, NSHeight(nsWindow.frame) - NSHeight(nsWindow.contentLayoutRect));
+    const NSRect dragRect = dragRegionRectForWindow(nsWindow, titleBarHeight);
+    if (dragRegionMonitorForWindow(nsWindow) == nil || NSIsEmptyRect(dragRect)) {
         return false;
     }
 
-    const NSRect dragFrame = dragView.frame;
-    const NSPoint testPoint = NSMakePoint(NSMidX(dragFrame), NSMidY(dragFrame));
-    NSView* hitView = [nativeView hitTest:testPoint];
-    return hitView == dragView;
+    const NSPoint testPoint = NSMakePoint(NSMidX(dragRect), NSMidY(dragRect));
+    return NSPointInRect(testPoint, dragRect);
+#else
+    Q_UNUSED(window);
+    return false;
+#endif
+}
+
+
+bool MacWindowChrome::titleBarDragRegionCapturesTrailingHitTest(QWindow* window) const {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    if (window == nullptr) {
+        return false;
+    }
+
+    const WId nativeId = window->winId();
+    if (nativeId == 0) {
+        return false;
+    }
+
+    auto* nativeView = (__bridge NSView*)(reinterpret_cast<void*>(nativeId));
+    if (nativeView == nil || nativeView.window == nil) {
+        return false;
+    }
+
+    NSWindow* nsWindow = nativeView.window;
+    const CGFloat titleBarHeight =
+        qMax(0.0, NSHeight(nsWindow.frame) - NSHeight(nsWindow.contentLayoutRect));
+    const NSRect dragRect = dragRegionRectForWindow(nsWindow, titleBarHeight);
+    if (dragRegionMonitorForWindow(nsWindow) == nil || NSIsEmptyRect(dragRect)) {
+        return false;
+    }
+
+    const NSPoint testPoint = NSMakePoint(NSMaxX(dragRect) - 24.0, NSMidY(dragRect));
+    return NSPointInRect(testPoint, dragRect);
+#else
+    Q_UNUSED(window);
+    return false;
+#endif
+}
+
+bool MacWindowChrome::hasTitleBarDragMonitor(QWindow* window) const {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    if (window == nullptr) {
+        return false;
+    }
+
+    const WId nativeId = window->winId();
+    if (nativeId == 0) {
+        return false;
+    }
+
+    auto* nativeView = (__bridge NSView*)(reinterpret_cast<void*>(nativeId));
+    if (nativeView == nil || nativeView.window == nil) {
+        return false;
+    }
+
+    return dragRegionMonitorForWindow(nativeView.window) != nil;
 #else
     Q_UNUSED(window);
     return false;
