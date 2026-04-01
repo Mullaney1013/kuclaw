@@ -21,7 +21,7 @@ function toolbarLayerTopMargin(topSafeInset, metrics) {
         return 0;
     }
 
-    return -Math.max(0, Math.round(topSafeInset));
+    return 0;
 }
 
 function toolbarLayerHeight(toolbarHeight, topSafeInset, metrics) {
