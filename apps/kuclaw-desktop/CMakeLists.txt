@@ -278,3 +278,25 @@ if(APPLE)
 endif()
 
 add_test(NAME kuclaw_window_chrome_tests COMMAND kuclaw_window_chrome_tests)
+set_tests_properties(kuclaw_window_chrome_tests PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+)
+
+find_program(KUCLAW_QMLTESTRUNNER_EXECUTABLE
+    NAMES qmltestrunner
+    REQUIRED
+)
+
+add_test(
+    NAME kuclaw_qml_ui_tests
+    COMMAND
+        ${KUCLAW_QMLTESTRUNNER_EXECUTABLE}
+        -input ${CMAKE_SOURCE_DIR}/tests/qml
+        -platform offscreen
+)
+
+set_tests_properties(kuclaw_qml_ui_tests PROPERTIES
+    ENVIRONMENT "QT_QUICK_BACKEND=software"
+    LABELS "qml;ui"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
