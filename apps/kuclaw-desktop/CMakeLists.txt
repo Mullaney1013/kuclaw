@@ -184,6 +184,8 @@ if(APPLE)
     set_target_properties(${KUCLAW_DESKTOP_TARGET} PROPERTIES
         OBJCXX_STANDARD 20
         OBJCXX_STANDARD_REQUIRED ON
+        MACOSX_BUNDLE_BUNDLE_NAME Kuclaw
+        MACOSX_BUNDLE_GUI_IDENTIFIER com.mullaney1013.kuclaw
         MACOSX_BUNDLE_ICON_FILE AppIcon.icns
     )
     target_compile_options(${KUCLAW_DESKTOP_TARGET}
@@ -254,6 +256,11 @@ qt_add_executable(kuclaw_window_chrome_tests
     ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/WindowChromeViewModel.cpp
 )
 
+set_target_properties(kuclaw_window_chrome_tests PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+)
+
 target_include_directories(kuclaw_window_chrome_tests
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
@@ -268,6 +275,16 @@ target_link_libraries(kuclaw_window_chrome_tests
 )
 
 if(APPLE)
+    set_target_properties(kuclaw_window_chrome_tests PROPERTIES
+        OBJCXX_STANDARD 20
+        OBJCXX_STANDARD_REQUIRED ON
+    )
+
+    target_compile_options(kuclaw_window_chrome_tests
+        PRIVATE
+            $<$<COMPILE_LANGUAGE:OBJCXX>:-std=c++20>
+    )
+
     target_sources(kuclaw_window_chrome_tests
         PRIVATE
             ${CMAKE_SOURCE_DIR}/src/integration/platform/MacWindowChrome.mm

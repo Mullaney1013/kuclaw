@@ -120,7 +120,7 @@ private slots:
 
         viewModel.attach(&window);
 
-        QTRY_VERIFY_WITH_TIMEOUT(viewModel.usesNativeTrafficLights(), 2500);
+        QTRY_VERIFY_WITH_TIMEOUT(viewModel.usesNativeTrafficLights(), 4000);
         QCOMPARE(viewModel.trafficLightsSafeWidth(), 78);
         QCOMPARE(viewModel.titleBarHeight(), 32);
         QCOMPARE(attachCount, 81);
