@@ -8,7 +8,10 @@
 
 namespace {
 constexpr int kRetryDelayMs = 16;
-constexpr int kMaxRetryAttempts = 60;
+constexpr int kRetryDelayMsAfterWarmup = 50;
+constexpr int kRetryDelayMsAfterStartup = 125;
+constexpr int kWarmupRetryAttempts = 60;
+constexpr int kStartupRetryAttempts = 180;
 
 WindowChromeMetrics defaultAttachMetrics(QWindow* window) {
 #if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
@@ -28,6 +31,18 @@ bool defaultBeginSystemDrag(QWindow* window) {
     Q_UNUSED(window);
     return false;
 #endif
+}
+
+int retryDelayMsForAttempt(int retryAttempt) {
+    if (retryAttempt <= kWarmupRetryAttempts) {
+        return kRetryDelayMs;
+    }
+
+    if (retryAttempt <= kStartupRetryAttempts) {
+        return kRetryDelayMsAfterWarmup;
+    }
+
+    return kRetryDelayMsAfterStartup;
 }
 }  // namespace
 
@@ -145,12 +160,8 @@ void WindowChromeViewModel::scheduleRetry() {
         return;
     }
 
-    if (retryAttempts_ >= kMaxRetryAttempts) {
-        return;
-    }
-
     ++retryAttempts_;
-    retryTimer_.start(kRetryDelayMs);
+    retryTimer_.start(retryDelayMsForAttempt(retryAttempts_));
 }
 
 void WindowChromeViewModel::resetRetryState() {

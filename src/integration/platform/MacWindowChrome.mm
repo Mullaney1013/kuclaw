@@ -56,8 +56,10 @@
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
 namespace {
-constexpr CGFloat kTitleBarDragRegionStartX = 192.0;
 constexpr CGFloat kTitleBarDragRegionMinHeight = 56.0;
+constexpr CGFloat kSidebarToggleLeadingGap = 12.0;
+constexpr CGFloat kTitleBarControlsClusterWidth = 82.0;
+constexpr CGFloat kTitleBarDragRegionLeadingGap = 20.0;
 const void* kWindowDragViewAssociationKey = &kWindowDragViewAssociationKey;
 const void* kWindowDragMonitorAssociationKey = &kWindowDragMonitorAssociationKey;
 
@@ -96,15 +98,51 @@ static NSView* dragRegionHostViewForWindow(NSWindow* nsWindow, NSView* nativeVie
     return nil;
 }
 
-static NSRect dragRegionFrameForView(NSView* nativeView, CGFloat titleBarHeight) {
-    const CGFloat hostHeight = NSHeight(nativeView.bounds);
-    const CGFloat safeHeight = qMin(hostHeight, qMax(titleBarHeight, kTitleBarDragRegionMinHeight));
-    const CGFloat clampedWidth = qMax<CGFloat>(0.0, NSWidth(nativeView.bounds) - kTitleBarDragRegionStartX);
-    const CGFloat topAlignedY = qMax<CGFloat>(0.0, hostHeight - safeHeight);
-    return NSMakeRect(kTitleBarDragRegionStartX, topAlignedY, clampedWidth, safeHeight);
+static WindowChromeMetrics currentWindowChromeMetrics(NSWindow* nsWindow) {
+    WindowChromeMetrics metrics;
+    if (nsWindow == nil) {
+        return metrics;
+    }
+
+    NSButton* closeButton = [nsWindow standardWindowButton:NSWindowCloseButton];
+    NSButton* zoomButton = [nsWindow standardWindowButton:NSWindowZoomButton];
+    if (closeButton == nil || zoomButton == nil) {
+        return metrics;
+    }
+
+    const NSRect closeFrame = closeButton.frame;
+    const NSRect zoomFrame = zoomButton.frame;
+    const CGFloat leftInset = NSMinX(closeFrame);
+    const CGFloat rightEdge = NSMaxX(zoomFrame);
+    const CGFloat titleBarHeight =
+        qMax(0.0, NSHeight(nsWindow.frame) - NSHeight(nsWindow.contentLayoutRect));
+
+    metrics.usesNativeTrafficLights = true;
+    metrics.trafficLightsSafeWidth = qCeil(rightEdge + leftInset);
+    metrics.titleBarHeight = qCeil(titleBarHeight);
+    return metrics;
 }
 
-static NSRect dragRegionRectForWindow(NSWindow* nsWindow, CGFloat titleBarHeight) {
+static CGFloat dragRegionStartXForMetrics(const WindowChromeMetrics& metrics) {
+    const CGFloat safeWidth = qMax<CGFloat>(0.0, metrics.trafficLightsSafeWidth);
+    return safeWidth + kSidebarToggleLeadingGap + kTitleBarControlsClusterWidth
+           + kTitleBarDragRegionLeadingGap;
+}
+
+static NSRect dragRegionFrameForView(NSView* nativeView,
+                                     CGFloat titleBarHeight,
+                                     const WindowChromeMetrics& metrics) {
+    const CGFloat hostHeight = NSHeight(nativeView.bounds);
+    const CGFloat safeHeight = qMin(hostHeight, qMax(titleBarHeight, kTitleBarDragRegionMinHeight));
+    const CGFloat startX = qMin<CGFloat>(NSWidth(nativeView.bounds), dragRegionStartXForMetrics(metrics));
+    const CGFloat clampedWidth = qMax<CGFloat>(0.0, NSWidth(nativeView.bounds) - startX);
+    const CGFloat topAlignedY = qMax<CGFloat>(0.0, hostHeight - safeHeight);
+    return NSMakeRect(startX, topAlignedY, clampedWidth, safeHeight);
+}
+
+static NSRect dragRegionRectForWindow(NSWindow* nsWindow,
+                                      CGFloat titleBarHeight,
+                                      const WindowChromeMetrics& metrics) {
     if (nsWindow == nil) {
         return NSZeroRect;
     }
@@ -112,9 +150,10 @@ static NSRect dragRegionRectForWindow(NSWindow* nsWindow, CGFloat titleBarHeight
     const CGFloat windowWidth = NSWidth(nsWindow.frame);
     const CGFloat windowHeight = NSHeight(nsWindow.frame);
     const CGFloat safeHeight = qMin(windowHeight, qMax(titleBarHeight, kTitleBarDragRegionMinHeight));
-    const CGFloat clampedWidth = qMax<CGFloat>(0.0, windowWidth - kTitleBarDragRegionStartX);
+    const CGFloat startX = qMin<CGFloat>(windowWidth, dragRegionStartXForMetrics(metrics));
+    const CGFloat clampedWidth = qMax<CGFloat>(0.0, windowWidth - startX);
     const CGFloat topAlignedY = qMax<CGFloat>(0.0, windowHeight - safeHeight);
-    return NSMakeRect(kTitleBarDragRegionStartX, topAlignedY, clampedWidth, safeHeight);
+    return NSMakeRect(startX, topAlignedY, clampedWidth, safeHeight);
 }
 
 static KuclawWindowDragView* dragRegionViewForWindow(NSWindow* nsWindow) {
@@ -133,7 +172,9 @@ static id dragRegionMonitorForWindow(NSWindow* nsWindow) {
     return objc_getAssociatedObject(nsWindow, kWindowDragMonitorAssociationKey);
 }
 
-static void installOrUpdateDragMonitor(NSWindow* nsWindow, CGFloat titleBarHeight) {
+static void installOrUpdateDragMonitor(NSWindow* nsWindow,
+                                       CGFloat titleBarHeight,
+                                       const WindowChromeMetrics& metrics) {
     if (nsWindow == nil) {
         return;
     }
@@ -157,7 +198,10 @@ static void installOrUpdateDragMonitor(NSWindow* nsWindow, CGFloat titleBarHeigh
                                                       qMax(0.0, NSHeight(strongWindow.frame)
                                                                      - NSHeight(strongWindow.contentLayoutRect));
                                                   const NSRect dragRect =
-                                                      dragRegionRectForWindow(strongWindow, currentTitleBarHeight);
+                                                      dragRegionRectForWindow(
+                                                          strongWindow,
+                                                          currentTitleBarHeight,
+                                                          metrics);
                                                   if (!NSPointInRect(event.locationInWindow, dragRect)) {
                                                       return event;
                                                   }
@@ -172,7 +216,10 @@ static void installOrUpdateDragMonitor(NSWindow* nsWindow, CGFloat titleBarHeigh
                              OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-static void installOrUpdateDragRegion(NSWindow* nsWindow, NSView* nativeView, CGFloat titleBarHeight) {
+static void installOrUpdateDragRegion(NSWindow* nsWindow,
+                                      NSView* nativeView,
+                                      CGFloat titleBarHeight,
+                                      const WindowChromeMetrics& metrics) {
     NSView* hostView = dragRegionHostViewForWindow(nsWindow, nativeView);
     if (hostView == nil || nsWindow == nil) {
         return;
@@ -199,7 +246,7 @@ static void installOrUpdateDragRegion(NSWindow* nsWindow, NSView* nativeView, CG
     }
     [hostView addSubview:dragView positioned:NSWindowAbove relativeTo:relativeView];
 
-    dragView.frame = dragRegionFrameForView(hostView, titleBarHeight);
+    dragView.frame = dragRegionFrameForView(hostView, titleBarHeight, metrics);
     dragView.hidden = NSIsEmptyRect(dragView.frame);
 }
 }  // namespace
@@ -233,30 +280,27 @@ WindowChromeMetrics MacWindowChrome::attach(QWindow* window) {
     nsWindow.titlebarAppearsTransparent = YES;
     nsWindow.styleMask |= NSWindowStyleMaskFullSizeContentView;
 
-    NSButton* closeButton = [nsWindow standardWindowButton:NSWindowCloseButton];
-    NSButton* zoomButton = [nsWindow standardWindowButton:NSWindowZoomButton];
-    if (closeButton == nil || zoomButton == nil) {
+    metrics = currentWindowChromeMetrics(nsWindow);
+    if (!metrics.usesNativeTrafficLights) {
         return metrics;
     }
 
-    const NSRect closeFrame = closeButton.frame;
-    const NSRect zoomFrame = zoomButton.frame;
-    const CGFloat leftInset = NSMinX(closeFrame);
-    const CGFloat rightEdge = NSMaxX(zoomFrame);
-
-    const CGFloat titleBarHeight = qMax(0.0, NSHeight(nsWindow.frame) - NSHeight(nsWindow.contentLayoutRect));
-
-    metrics.usesNativeTrafficLights = true;
-    metrics.trafficLightsSafeWidth = qCeil(rightEdge + leftInset);
-    metrics.titleBarHeight = qCeil(titleBarHeight);
-
-    installOrUpdateDragRegion(nsWindow, nativeView, titleBarHeight);
-    installOrUpdateDragMonitor(nsWindow, titleBarHeight);
+    installOrUpdateDragRegion(nsWindow, nativeView, metrics.titleBarHeight, metrics);
+    installOrUpdateDragMonitor(nsWindow, metrics.titleBarHeight, metrics);
 #else
     Q_UNUSED(window);
 #endif
 
     return metrics;
+}
+
+int MacWindowChrome::titleBarDragRegionStartXForMetrics(const WindowChromeMetrics& metrics) const {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    return qCeil(dragRegionStartXForMetrics(metrics));
+#else
+    Q_UNUSED(metrics);
+    return 0;
+#endif
 }
 
 bool MacWindowChrome::beginSystemDrag(QWindow* window) {
@@ -343,7 +387,8 @@ bool MacWindowChrome::titleBarDragRegionCapturesHitTest(QWindow* window) const {
     NSWindow* nsWindow = nativeView.window;
     const CGFloat titleBarHeight =
         qMax(0.0, NSHeight(nsWindow.frame) - NSHeight(nsWindow.contentLayoutRect));
-    const NSRect dragRect = dragRegionRectForWindow(nsWindow, titleBarHeight);
+    const WindowChromeMetrics metrics = currentWindowChromeMetrics(nsWindow);
+    const NSRect dragRect = dragRegionRectForWindow(nsWindow, titleBarHeight, metrics);
     if (dragRegionMonitorForWindow(nsWindow) == nil || NSIsEmptyRect(dragRect)) {
         return false;
     }
@@ -376,7 +421,8 @@ bool MacWindowChrome::titleBarDragRegionCapturesTrailingHitTest(QWindow* window)
     NSWindow* nsWindow = nativeView.window;
     const CGFloat titleBarHeight =
         qMax(0.0, NSHeight(nsWindow.frame) - NSHeight(nsWindow.contentLayoutRect));
-    const NSRect dragRect = dragRegionRectForWindow(nsWindow, titleBarHeight);
+    const WindowChromeMetrics metrics = currentWindowChromeMetrics(nsWindow);
+    const NSRect dragRect = dragRegionRectForWindow(nsWindow, titleBarHeight, metrics);
     if (dragRegionMonitorForWindow(nsWindow) == nil || NSIsEmptyRect(dragRect)) {
         return false;
     }

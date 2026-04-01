@@ -101,6 +101,31 @@ private slots:
         QCOMPARE(viewModel.usesNativeTrafficLights(), true);
     }
 
+    void attachKeepsRetryingBeyondInitialWarmupWindow() {
+        int attachCount = 0;
+        WindowChromeViewModel viewModel(nullptr, [&attachCount](QWindow* window) {
+            Q_UNUSED(window);
+            ++attachCount;
+            if (attachCount <= 80) {
+                return WindowChromeMetrics{};
+            }
+
+            return WindowChromeMetrics{
+                true,
+                78,
+                32,
+            };
+        });
+        QWindow window;
+
+        viewModel.attach(&window);
+
+        QTRY_VERIFY_WITH_TIMEOUT(viewModel.usesNativeTrafficLights(), 2500);
+        QCOMPARE(viewModel.trafficLightsSafeWidth(), 78);
+        QCOMPARE(viewModel.titleBarHeight(), 32);
+        QCOMPARE(attachCount, 81);
+    }
+
     void attachReplacesPendingRetryWhenSwitchingWindows() {
         int firstWindowCount = 0;
         int secondWindowCount = 0;
@@ -164,6 +189,18 @@ private slots:
     }
 
 #ifdef Q_OS_MACOS
+    void macWindowChromeDerivesDragRegionStartFromMeasuredSafeWidth() {
+        MacWindowChrome chrome;
+
+        const int baselineStartX = chrome.titleBarDragRegionStartXForMetrics(
+            WindowChromeMetrics{ true, 78, 32 });
+        const int widerStartX = chrome.titleBarDragRegionStartXForMetrics(
+            WindowChromeMetrics{ true, 110, 32 });
+
+        QCOMPARE(baselineStartX, 192);
+        QVERIFY(widerStartX > baselineStartX);
+    }
+
     void macWindowChromeReturnsUsableMetricsForNativeWindow() {
         if (QGuiApplication::platformName() != "cocoa") {
             QSKIP("Native NSWindow metrics require the cocoa platform plugin.");
