@@ -118,11 +118,3 @@ function railIconChrome(selected, hovered) {
         borderWidth: 0
     }
 }
-
-function railSettingsSpacerHeight(containerHeight, itemCount, itemHeight, spacing, settingsHeight) {
-    const safeItemCount = Math.max(0, itemCount)
-    const safeSpacing = Math.max(0, spacing)
-    const topItemsHeight = safeItemCount * itemHeight
-    const totalGapCount = safeItemCount + 1
-    return Math.max(0, containerHeight - topItemsHeight - settingsHeight - (totalGapCount * safeSpacing))
-}

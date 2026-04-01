@@ -300,7 +300,7 @@ ApplicationWindow {
             selectionEnabled: false
         }
 
-        Column {
+        Item {
             id: hoverRailColumn
             visible: root.shellState.showHoverRail
             anchors.top: parent.top
@@ -308,31 +308,28 @@ ApplicationWindow {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 26
-            spacing: 14
+            width: WorkspaceShellStyles.railIconMetrics().width
 
-            Repeater {
-                model: root.sidebarItems
+            Column {
+                anchors.top: parent.top
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 14
 
-                delegate: RailSidebarButton {
-                    required property var modelData
-                    pageKey: modelData.page
-                    iconSource: modelData.icon
+                Repeater {
+                    model: root.sidebarItems
+
+                    delegate: RailSidebarButton {
+                        required property var modelData
+                        pageKey: modelData.page
+                        iconSource: modelData.icon
+                    }
                 }
-            }
-
-            Item {
-                width: 1
-                height: WorkspaceShellStyles.railSettingsSpacerHeight(
-                            hoverRailColumn.height,
-                            root.sidebarItems.length,
-                            settingsIcon.height,
-                            hoverRailColumn.spacing,
-                            settingsIcon.height
-                        )
             }
 
             RailSidebarButton {
                 id: settingsIcon
+                anchors.bottom: parent.bottom
+                anchors.horizontalCenter: parent.horizontalCenter
                 pageKey: "settings"
                 iconSource: "qrc:/qt/qml/Kuclaw/assets/icons/settings.svg"
             }
