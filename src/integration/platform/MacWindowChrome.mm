@@ -109,6 +109,19 @@ static bool runningOnCocoaPlatform() {
     return QGuiApplication::platformName() == QStringLiteral("cocoa");
 }
 
+static NSView* nativeViewForId(WId nativeId) {
+    if (nativeId == 0) {
+        return nil;
+    }
+
+    return (__bridge NSView*)(reinterpret_cast<void*>(nativeId));
+}
+
+static NSWindow* nativeWindowForId(WId nativeId) {
+    NSView* nativeView = nativeViewForId(nativeId);
+    return nativeView != nil ? nativeView.window : nil;
+}
+
 static KuclawPendingTitleBarAction pendingActionForWindow(NSWindow* nsWindow) {
     if (nsWindow == nil) {
         return KuclawPendingTitleBarActionNone;
@@ -969,6 +982,25 @@ bool MacWindowChrome::hasTitleBarDragRegion(QWindow* window) const {
 #endif
 }
 
+bool MacWindowChrome::hasTitleBarDragRegion(WId nativeId) const {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    if (nativeId == 0 || !runningOnCocoaPlatform()) {
+        return false;
+    }
+
+    NSWindow* nsWindow = nativeWindowForId(nativeId);
+    if (nsWindow == nil) {
+        return false;
+    }
+
+    KuclawWindowDragView* dragView = dragRegionViewForWindow(nsWindow);
+    return dragView != nil && !dragView.hidden && !NSIsEmptyRect(dragView.frame);
+#else
+    Q_UNUSED(nativeId);
+    return false;
+#endif
+}
+
 bool MacWindowChrome::supportsNativeFullscreen(QWindow* window) const {
 #if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
     if (window == nullptr || !runningOnCocoaPlatform()) {
@@ -1089,6 +1121,43 @@ bool MacWindowChrome::hasTitleBarDragMonitor(QWindow* window) const {
     return dragRegionMonitorForWindow(nativeView.window) != nil;
 #else
     Q_UNUSED(window);
+    return false;
+#endif
+}
+
+bool MacWindowChrome::hasTitleBarDragMonitor(WId nativeId) const {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    if (nativeId == 0 || !runningOnCocoaPlatform()) {
+        return false;
+    }
+
+    NSWindow* nsWindow = nativeWindowForId(nativeId);
+    if (nsWindow == nil) {
+        return false;
+    }
+
+    return dragRegionMonitorForWindow(nsWindow) != nil;
+#else
+    Q_UNUSED(nativeId);
+    return false;
+#endif
+}
+
+bool MacWindowChrome::hasToolbarChrome(WId nativeId) const {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    if (nativeId == 0 || !runningOnCocoaPlatform()) {
+        return false;
+    }
+
+    NSWindow* nsWindow = nativeWindowForId(nativeId);
+    if (nsWindow == nil) {
+        return false;
+    }
+
+    NSToolbar* toolbar = toolbarForWindow(nsWindow);
+    return toolbar != nil && nsWindow.toolbar == toolbar;
+#else
+    Q_UNUSED(nativeId);
     return false;
 #endif
 }

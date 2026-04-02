@@ -45,10 +45,13 @@ public:
                                           const QRectF& forwardRect) const;
     int currentTitleBarDragRegionStartX(QWindow* window) const;
     bool hasTitleBarDragRegion(QWindow* window) const;
+    bool hasTitleBarDragRegion(WId nativeId) const;
     bool supportsNativeFullscreen(QWindow* window) const;
     bool titleBarDragRegionCapturesHitTest(QWindow* window) const;
     bool titleBarDragRegionCapturesTrailingHitTest(QWindow* window) const;
     bool hasTitleBarDragMonitor(QWindow* window) const;
+    bool hasTitleBarDragMonitor(WId nativeId) const;
+    bool hasToolbarChrome(WId nativeId) const;
 
 private:
     QRectF sidebarToggleRect_;

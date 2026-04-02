@@ -195,6 +195,51 @@ private slots:
         QTRY_COMPARE(chrome.currentTitleBarDragRegionStartX(&window), 208);
         QVERIFY(chrome.currentTitleBarDragRegionStartX(&window) > baselineStartX);
     }
+
+    void destroyedWindowFallbackDetachesNativeChromeArtifactsByStoredNativeId() {
+        if (QGuiApplication::platformName() != "cocoa") {
+            QSKIP("Destroyed-window native cleanup verification requires the cocoa platform plugin.");
+        }
+
+        if (QGuiApplication::screens().isEmpty()) {
+            QSKIP("No screens available for destroyed-window native cleanup verification.");
+        }
+
+        auto* window = new QWindow;
+        window->resize(640, 480);
+        window->show();
+        QVERIFY(QTest::qWaitForWindowExposed(window));
+
+        WindowChromeViewModel viewModel;
+        viewModel.attach(window);
+        QTRY_VERIFY(viewModel.usesNativeTrafficLights());
+
+        const WId nativeId = window->winId();
+        QVERIFY(nativeId != 0);
+
+        MacWindowChrome chrome;
+        QVERIFY(chrome.hasTitleBarDragMonitor(nativeId));
+        QVERIFY(chrome.hasTitleBarDragRegion(nativeId));
+        QVERIFY(chrome.hasToolbarChrome(nativeId));
+
+        NSView* retainedNativeView = (__bridge NSView*)(reinterpret_cast<void*>(nativeId));
+        QVERIFY(retainedNativeView != nil);
+        NSWindow* retainedWindow = retainedNativeView.window;
+        QVERIFY(retainedWindow != nil);
+
+        window->removeEventFilter(&viewModel);
+        delete window;
+
+        QCoreApplication::processEvents();
+        QTest::qWait(50);
+
+        QVERIFY(!chrome.hasTitleBarDragMonitor(nativeId));
+        QVERIFY(!chrome.hasTitleBarDragRegion(nativeId));
+        QVERIFY(!chrome.hasToolbarChrome(nativeId));
+        QCOMPARE(viewModel.usesNativeTrafficLights(), false);
+
+        [retainedWindow orderOut:nil];
+    }
 };
 
 QTEST_MAIN(MacWindowChromeNativeTest)
