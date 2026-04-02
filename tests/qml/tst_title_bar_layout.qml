@@ -22,6 +22,16 @@ TestCase {
         compare(TitleBarLayout.contentTopMargin(56, metrics), 74)
     }
 
+    function test_native_toggle_margin_clamps_runaway_safe_width() {
+        const metrics = {
+            usesNativeTrafficLights: true,
+            trafficLightsSafeWidth: 480,
+            titleBarHeight: 32
+        }
+
+        compare(TitleBarLayout.sidebarToggleLeftMargin(metrics), 108)
+    }
+
     function test_non_native_metrics_keep_existing_shell_defaults() {
         const metrics = {
             usesNativeTrafficLights: false,

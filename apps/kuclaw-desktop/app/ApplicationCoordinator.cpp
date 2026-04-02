@@ -3,11 +3,13 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QKeyEvent>
+#include <QGuiApplication>
 #include <QtGlobal>
 
 #include "core/capture/CaptureCoordinator.h"
 #include "core/capture/NativeScreenHelperFactory.h"
 #include "core/common/Logger.h"
+#include "app/ApplicationReopenPolicy.h"
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
 #include "integration/platform/MacHotkeyRegistrar.h"
@@ -124,11 +126,10 @@ bool ApplicationCoordinator::eventFilter(QObject* /*watched*/, QEvent* event) {
 
     if ((event->type() == QEvent::ApplicationActivate
          || event->type() == QEvent::ApplicationStateChange)
-        && qApp->applicationState() == Qt::ApplicationActive
-        && !captureCoordinator_.isCaptureActive()) {
-        if (suppressNextReopen_) {
-            return false;
-        }
+        && ApplicationReopenPolicy::shouldEmitReopenRequest(qApp->applicationState(),
+                                                            captureCoordinator_.isCaptureActive(),
+                                                            suppressNextReopen_,
+                                                            QGuiApplication::topLevelWindows())) {
         emit reopenRequested();
     }
 

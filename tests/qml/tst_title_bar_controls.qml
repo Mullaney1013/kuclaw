@@ -37,6 +37,22 @@ TestCase {
         compare(count, 1)
     }
 
+    function test_sidebar_toggle_only_emits_after_completed_click() {
+        const subject = createSubject()
+        verify(subject !== null)
+        let count = 0
+        subject.sidebarToggleRequested.connect(function() { count += 1 })
+
+        mousePress(subject.sidebarToggleTarget, 10, 8, Qt.LeftButton)
+        mouseMove(subject.sidebarToggleTarget, subject.sidebarToggleTarget.width + 12, 8)
+        mouseRelease(subject.sidebarToggleTarget,
+                     subject.sidebarToggleTarget.width + 12,
+                     8,
+                     Qt.LeftButton)
+
+        compare(count, 0)
+    }
+
     function test_sidebar_toggle_uses_exported_svg_asset() {
         const subject = createSubject()
 
@@ -92,5 +108,30 @@ TestCase {
         subject.requestForward()
 
         compare(count, 0)
+    }
+
+    function test_native_routed_sidebar_toggle_does_not_emit_qml_signal_from_click() {
+        const subject = createSubject({ routeClicksThroughNative: true })
+        verify(subject !== null)
+        compare(subject.routeClicksThroughNative, true)
+        let count = 0
+        subject.sidebarToggleRequested.connect(function() { count += 1 })
+
+        mouseClick(subject.sidebarToggleTarget, 10, 8, Qt.LeftButton)
+
+        compare(count, 0)
+    }
+
+    function test_enabled_state_changes_request_native_rect_resync() {
+        const subject = createSubject({ backEnabled: false, forwardEnabled: false })
+        verify(subject !== null)
+        let count = 0
+        subject.controlRectsSyncRequested.connect(function() { count += 1 })
+
+        subject.backEnabled = true
+        compare(count, 1)
+
+        subject.forwardEnabled = true
+        compare(count, 2)
     }
 }

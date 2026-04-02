@@ -37,7 +37,8 @@ function sidebarToggleLeftMargin(metrics) {
         return 94;
     }
 
-    return metrics.trafficLightsSafeWidth + 12;
+    const normalizedSafeWidth = Math.min(Math.max(metrics.trafficLightsSafeWidth, 78), 96);
+    return normalizedSafeWidth + 12;
 }
 
 function sidebarTopPadding(toolbarHeight, topSafeInset, metrics) {

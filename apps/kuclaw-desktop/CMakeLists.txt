@@ -256,6 +256,28 @@ qt_add_executable(kuclaw_window_chrome_tests
     ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/WindowChromeViewModel.cpp
 )
 
+qt_add_executable(kuclaw_application_reopen_policy_tests
+    ${CMAKE_SOURCE_DIR}/tests/cpp/tst_application_reopen_policy.cpp
+)
+
+set_target_properties(kuclaw_application_reopen_policy_tests PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+)
+
+target_include_directories(kuclaw_application_reopen_policy_tests
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/src
+)
+
+target_link_libraries(kuclaw_application_reopen_policy_tests
+    PRIVATE
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Test
+)
+
 set_target_properties(kuclaw_window_chrome_tests PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
@@ -271,6 +293,9 @@ target_link_libraries(kuclaw_window_chrome_tests
     PRIVATE
         Qt6::Core
         Qt6::Gui
+        Qt6::Qml
+        Qt6::Quick
+        Qt6::QuickControls2
         Qt6::Test
 )
 
@@ -305,6 +330,73 @@ add_test(NAME kuclaw_window_chrome_tests COMMAND kuclaw_window_chrome_tests)
 set_tests_properties(kuclaw_window_chrome_tests PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 )
+
+add_test(NAME kuclaw_application_reopen_policy_tests COMMAND kuclaw_application_reopen_policy_tests)
+set_tests_properties(kuclaw_application_reopen_policy_tests PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+)
+
+option(KUCLAW_REGISTER_INTERACTIVE_COCOA_TESTS
+    "Register interactive macOS Cocoa window tests with CTest"
+    OFF
+)
+
+if(APPLE)
+    qt_add_executable(kuclaw_window_chrome_cocoa_tests
+        ${CMAKE_SOURCE_DIR}/tests/cpp/tst_mac_window_chrome_native.mm
+    )
+
+    set_target_properties(kuclaw_window_chrome_cocoa_tests PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        OBJCXX_STANDARD 20
+        OBJCXX_STANDARD_REQUIRED ON
+    )
+
+    target_include_directories(kuclaw_window_chrome_cocoa_tests
+        PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}
+            ${CMAKE_SOURCE_DIR}/src
+    )
+
+    target_link_libraries(kuclaw_window_chrome_cocoa_tests
+        PRIVATE
+            Qt6::Core
+            Qt6::Gui
+            Qt6::Test
+            "-framework AppKit"
+    )
+
+    target_compile_options(kuclaw_window_chrome_cocoa_tests
+        PRIVATE
+            $<$<COMPILE_LANGUAGE:OBJCXX>:-std=c++20>
+    )
+
+    target_sources(kuclaw_window_chrome_cocoa_tests
+        PRIVATE
+            ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/WindowChromeViewModel.cpp
+            ${CMAKE_SOURCE_DIR}/src/integration/platform/MacWindowChrome.mm
+    )
+
+    set_source_files_properties(
+        ${CMAKE_SOURCE_DIR}/src/integration/platform/MacWindowChrome.mm
+        ${CMAKE_SOURCE_DIR}/tests/cpp/tst_mac_window_chrome_native.mm
+        PROPERTIES COMPILE_OPTIONS "-fobjc-arc"
+    )
+
+    if(KUCLAW_REGISTER_INTERACTIVE_COCOA_TESTS)
+        add_test(NAME kuclaw_window_chrome_cocoa_tests COMMAND kuclaw_window_chrome_cocoa_tests)
+        set_tests_properties(kuclaw_window_chrome_cocoa_tests PROPERTIES
+            LABELS "native;cocoa;interactive"
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        )
+    else()
+        message(STATUS
+            "Skipping registration of interactive Cocoa window tests in CTest. "
+            "Configure with -DKUCLAW_REGISTER_INTERACTIVE_COCOA_TESTS=ON to enable them."
+        )
+    endif()
+endif()
 
 find_program(KUCLAW_QMLTESTRUNNER_EXECUTABLE
     NAMES qmltestrunner

@@ -6,6 +6,7 @@ Item {
     property bool backEnabled: false
     property bool forwardEnabled: false
     property bool showTrafficLights: true
+    property bool routeClicksThroughNative: false
     property real sidebarToggleLeftMargin: 94
     property real backButtonX: 40
     property real forwardButtonX: 56
@@ -22,6 +23,7 @@ Item {
     signal sidebarToggleRequested()
     signal backRequested()
     signal forwardRequested()
+    signal controlRectsSyncRequested()
 
     width: 176
     height: 20
@@ -41,6 +43,9 @@ Item {
             root.forwardRequested()
         }
     }
+
+    onBackEnabledChanged: root.controlRectsSyncRequested()
+    onForwardEnabledChanged: root.controlRectsSyncRequested()
 
     Row {
         visible: root.showTrafficLights
@@ -108,7 +113,16 @@ Item {
                 id: sidebarToggleMouseArea
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: root.requestSidebarToggle()
+                onPressed: function(mouse) {
+                    if (root.routeClicksThroughNative) {
+                        mouse.accepted = false
+                    }
+                }
+                onClicked: {
+                    if (!root.routeClicksThroughNative) {
+                        root.requestSidebarToggle()
+                    }
+                }
             }
         }
 
@@ -142,7 +156,16 @@ Item {
                 anchors.fill: parent
                 enabled: root.backEnabled
                 cursorShape: root.backEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                onClicked: root.requestBack()
+                onPressed: function(mouse) {
+                    if (root.routeClicksThroughNative) {
+                        mouse.accepted = false
+                    }
+                }
+                onClicked: {
+                    if (!root.routeClicksThroughNative) {
+                        root.requestBack()
+                    }
+                }
             }
         }
 
@@ -177,7 +200,16 @@ Item {
                 anchors.fill: parent
                 enabled: root.forwardEnabled
                 cursorShape: root.forwardEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                onClicked: root.requestForward()
+                onPressed: function(mouse) {
+                    if (root.routeClicksThroughNative) {
+                        mouse.accepted = false
+                    }
+                }
+                onClicked: {
+                    if (!root.routeClicksThroughNative) {
+                        root.requestForward()
+                    }
+                }
             }
         }
     }

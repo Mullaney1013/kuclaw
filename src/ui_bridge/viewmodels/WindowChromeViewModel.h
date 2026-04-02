@@ -7,6 +7,7 @@
 #include <QPointer>
 #include <QPlatformSurfaceEvent>
 #include <QTimer>
+#include <QVariant>
 #include <QWindow>
 
 #include "integration/platform/MacWindowChrome.h"
@@ -18,12 +19,21 @@ class WindowChromeViewModel final : public QObject {
     Q_PROPERTY(int titleBarHeight READ titleBarHeight NOTIFY metricsChanged)
 
 public:
-    using AttachFunction = std::function<WindowChromeMetrics(QWindow*)>;
+    using AttachFunction = std::function<WindowChromeMetrics(
+        QWindow*,
+        std::function<void()>,
+        std::function<void()>,
+        std::function<void()>)>;
     using DragFunction = std::function<bool(QWindow*)>;
+    using ToggleFullscreenFunction = std::function<bool(QWindow*)>;
+    using DetachFunction = std::function<void(QWindow*, WId)>;
 
     explicit WindowChromeViewModel(QObject* parent = nullptr,
                                    AttachFunction attachFunction = {},
-                                   DragFunction dragFunction = {});
+                                   DragFunction dragFunction = {},
+                                   ToggleFullscreenFunction toggleFullscreenFunction = {},
+                                   DetachFunction detachFunction = {});
+    ~WindowChromeViewModel() override;
 
     bool usesNativeTrafficLights() const;
     int trafficLightsSafeWidth() const;
@@ -31,9 +41,25 @@ public:
 
     Q_INVOKABLE void attach(QObject* windowObject);
     Q_INVOKABLE bool beginSystemDrag();
+    Q_INVOKABLE bool toggleNativeFullscreen();
+    Q_INVOKABLE void updateTitleBarControlRects(qreal sidebarToggleX,
+                                                qreal sidebarToggleY,
+                                                qreal sidebarToggleWidth,
+                                                qreal sidebarToggleHeight,
+                                                qreal backX,
+                                                qreal backY,
+                                                qreal backWidth,
+                                                qreal backHeight,
+                                                qreal forwardX,
+                                                qreal forwardY,
+                                                qreal forwardWidth,
+                                                qreal forwardHeight);
 
 signals:
     void metricsChanged();
+    void sidebarToggleRequested();
+    void backRequested();
+    void forwardRequested();
 
 protected:
     bool eventFilter(QObject* watched, QEvent* event) override;
@@ -44,13 +70,26 @@ private:
     void scheduleRetry();
     void resetRetryState();
     bool shouldRetry() const;
-    void clearTrackedWindow();
+    void clearTrackedWindow(QWindow* detachWindow = nullptr, bool allowNativeDetach = true);
     void setMetrics(const WindowChromeMetrics& metrics);
+    void detachNativeChrome(QWindow* window, WId nativeId);
+    bool invokeTrackedWindowMethod(const char* method);
+    bool invokeTrackedWindowMethod(const char* method, const QVariant& argument);
+    void notifySidebarToggleRequested();
+    void notifyBackRequested();
+    void notifyForwardRequested();
 
     AttachFunction attachFunction_;
     DragFunction dragFunction_;
+    ToggleFullscreenFunction toggleFullscreenFunction_;
+    DetachFunction detachFunction_;
+    MacWindowChrome chrome_;
     WindowChromeMetrics metrics_;
     QPointer<QWindow> trackedWindow_;
+    QWindow* nativeChromeDetachWindow_ = nullptr;
+    WId nativeChromeDetachId_ = 0;
     QTimer retryTimer_;
     int retryAttempts_ = 0;
+    bool nativeChromeAttached_ = false;
+    bool ownsNativeChromeAttachment_ = false;
 };
