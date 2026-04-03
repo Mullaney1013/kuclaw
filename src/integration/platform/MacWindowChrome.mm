@@ -19,6 +19,14 @@
 
 static const CGFloat kLeadingToolbarClusterWindowedGap = 10.0;
 static const CGFloat kLeadingToolbarClusterFullscreenGap = 0.0;
+static NSToolbarItemIdentifier const kLeadingClusterToolbarItemIdentifier =
+    @"com.mullaney1013.kuclaw.leadingCluster";
+
+typedef NS_ENUM(NSInteger, KuclawLeadingClusterHostMode) {
+    KuclawLeadingClusterHostModeNone = 0,
+    KuclawLeadingClusterHostModeToolbarItem,
+    KuclawLeadingClusterHostModeTitlebarAccessory,
+};
 
 static NSView* leadingClusterHostViewForWindow(NSWindow* nsWindow) {
     if (nsWindow == nil) {
@@ -68,9 +76,12 @@ static NSRect trafficLightsClusterFrameInView(NSWindow* nsWindow, NSView* target
 @interface KuclawChromeToolbarController : NSObject <NSToolbarDelegate>
 @property(nonatomic, weak) NSWindow* window;
 @property(nonatomic, strong) NSToolbar* toolbar;
+@property(nonatomic, strong) NSToolbarItem* leadingClusterItem;
+@property(nonatomic, strong) NSTitlebarAccessoryViewController* leadingAccessoryController;
 @property(nonatomic, strong) NSStackView* leadingClusterView;
 @property(nonatomic, strong) NSButton* sidebarButton;
 @property(nonatomic, strong) NSSegmentedControl* navigationControl;
+@property(nonatomic, assign) KuclawLeadingClusterHostMode hostMode;
 @property(nonatomic, copy) dispatch_block_t sidebarHandler;
 @property(nonatomic, copy) dispatch_block_t backHandler;
 @property(nonatomic, copy) dispatch_block_t forwardHandler;
@@ -83,6 +94,8 @@ static NSRect trafficLightsClusterFrameInView(NSWindow* nsWindow, NSView* target
 - (NativeNavigationState)navigationEnabledState;
 - (NSRect)leadingClusterFrameInWindowCoordinates;
 - (BOOL)leadingClusterUsesDirectTitlebarHost;
+- (BOOL)leadingClusterUsesToolbarItem;
+- (BOOL)leadingClusterUsesTitlebarAccessory;
 - (void)installForCurrentWindowState;
 - (void)detachFromWindow;
 @end
@@ -193,6 +206,28 @@ static NSRect trafficLightsClusterFrameInView(NSWindow* nsWindow, NSView* target
     return stackView;
 }
 
+- (NSToolbarItem*)makeLeadingClusterItem {
+    NSToolbarItem* item =
+        [[NSToolbarItem alloc] initWithItemIdentifier:kLeadingClusterToolbarItemIdentifier];
+    item.label = @"Leading Controls";
+    item.paletteLabel = @"Leading Controls";
+    item.view = self.leadingClusterView;
+    item.minSize = self.leadingClusterView.fittingSize;
+    item.maxSize = self.leadingClusterView.fittingSize;
+    return item;
+}
+
+- (NSTitlebarAccessoryViewController*)makeLeadingAccessoryController {
+    NSTitlebarAccessoryViewController* accessory = [[NSTitlebarAccessoryViewController alloc] init];
+    accessory.layoutAttribute = NSLayoutAttributeLeft;
+    accessory.view = self.leadingClusterView;
+    accessory.view.frame = NSMakeRect(0.0,
+                                      0.0,
+                                      self.leadingClusterView.fittingSize.width,
+                                      self.leadingClusterView.fittingSize.height);
+    return accessory;
+}
+
 - (instancetype)initWithWindow:(NSWindow*)window {
     self = [super init];
     if (self != nil) {
@@ -211,7 +246,9 @@ static NSRect trafficLightsClusterFrameInView(NSWindow* nsWindow, NSView* target
             [self makeLeadingClusterViewWithSidebarButton:self.sidebarButton
                                         navigationControl:self.navigationControl];
         self.leadingClusterView.hidden = NO;
-        self.leadingClusterView.autoresizingMask = NSViewMaxXMargin | NSViewMinYMargin;
+        self.leadingClusterItem = [self makeLeadingClusterItem];
+        self.leadingAccessoryController = [self makeLeadingAccessoryController];
+        self.hostMode = KuclawLeadingClusterHostModeNone;
     }
 
     return self;
@@ -219,12 +256,12 @@ static NSRect trafficLightsClusterFrameInView(NSWindow* nsWindow, NSView* target
 
 - (NSArray<NSToolbarItemIdentifier>*)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar {
     Q_UNUSED(toolbar);
-    return @[ NSToolbarFlexibleSpaceItemIdentifier ];
+    return @[ kLeadingClusterToolbarItemIdentifier, NSToolbarFlexibleSpaceItemIdentifier ];
 }
 
 - (NSArray<NSToolbarItemIdentifier>*)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar {
     Q_UNUSED(toolbar);
-    return @[ NSToolbarFlexibleSpaceItemIdentifier ];
+    return @[ kLeadingClusterToolbarItemIdentifier, NSToolbarFlexibleSpaceItemIdentifier ];
 }
 
 - (NSArray<NSToolbarItemIdentifier>*)toolbarSelectableItemIdentifiers:(NSToolbar*)toolbar {
@@ -237,7 +274,13 @@ static NSRect trafficLightsClusterFrameInView(NSWindow* nsWindow, NSView* target
 willBeInsertedIntoToolbar:(BOOL)flag {
     Q_UNUSED(toolbar);
     Q_UNUSED(flag);
-    Q_UNUSED(itemIdentifier);
+    if ([itemIdentifier isEqualToString:kLeadingClusterToolbarItemIdentifier]) {
+        self.leadingClusterItem.view = self.leadingClusterView;
+        self.leadingClusterItem.minSize = self.leadingClusterView.fittingSize;
+        self.leadingClusterItem.maxSize = self.leadingClusterView.fittingSize;
+        return self.leadingClusterItem;
+    }
+
     return nil;
 }
 
@@ -274,14 +317,62 @@ willBeInsertedIntoToolbar:(BOOL)flag {
 }
 
 - (BOOL)leadingClusterUsesDirectTitlebarHost {
-    if (self.window == nil || self.leadingClusterView == nil || self.leadingClusterView.superview == nil) {
-        return NO;
+    return self.hostMode != KuclawLeadingClusterHostModeNone;
+}
+
+- (BOOL)leadingClusterUsesToolbarItem {
+    return self.hostMode == KuclawLeadingClusterHostModeToolbarItem;
+}
+
+- (BOOL)leadingClusterUsesTitlebarAccessory {
+    return self.hostMode == KuclawLeadingClusterHostModeTitlebarAccessory;
+}
+
+- (void)removeAccessoryIfNeeded {
+    if (self.window == nil || self.leadingAccessoryController == nil) {
+        return;
     }
 
-    NSView* contentHost = self.window.contentView;
-    NSView* titlebarHost = self.window.contentView != nil ? self.window.contentView.superview : nil;
-    return (contentHost != nil && self.leadingClusterView.superview == contentHost)
-           || (titlebarHost != nil && self.leadingClusterView.superview == titlebarHost);
+    const NSUInteger accessoryIndex =
+        [self.window.titlebarAccessoryViewControllers indexOfObjectIdenticalTo:self.leadingAccessoryController];
+    if (accessoryIndex != NSNotFound) {
+        [self.window removeTitlebarAccessoryViewControllerAtIndex:accessoryIndex];
+    }
+}
+
+- (void)installAsToolbarItem {
+    [self removeAccessoryIfNeeded];
+
+    self.leadingAccessoryController.view = nil;
+    self.leadingClusterItem.view = self.leadingClusterView;
+    self.leadingClusterItem.minSize = self.leadingClusterView.fittingSize;
+    self.leadingClusterItem.maxSize = self.leadingClusterView.fittingSize;
+
+    if (self.window.toolbar != self.toolbar) {
+        self.window.toolbar = self.toolbar;
+    }
+
+    [self.toolbar validateVisibleItems];
+    self.hostMode = KuclawLeadingClusterHostModeToolbarItem;
+}
+
+- (void)installAsTitlebarAccessory {
+    if (self.window.toolbar == self.toolbar) {
+        self.window.toolbar = nil;
+    }
+
+    self.leadingClusterItem.view = nil;
+
+    if (self.leadingAccessoryController.view != self.leadingClusterView) {
+        self.leadingAccessoryController.view = self.leadingClusterView;
+    }
+
+    if ([self.window.titlebarAccessoryViewControllers
+            indexOfObjectIdenticalTo:self.leadingAccessoryController] == NSNotFound) {
+        [self.window addTitlebarAccessoryViewController:self.leadingAccessoryController];
+    }
+
+    self.hostMode = KuclawLeadingClusterHostModeTitlebarAccessory;
 }
 
 - (void)installForCurrentWindowState {
@@ -289,50 +380,14 @@ willBeInsertedIntoToolbar:(BOOL)flag {
         return;
     }
 
-    NSView* hostView = leadingClusterHostViewForWindow(self.window);
-    if (hostView == nil) {
-        return;
-    }
-
-    if (self.leadingClusterView.superview != hostView) {
-        [self.leadingClusterView removeFromSuperview];
-        [hostView addSubview:self.leadingClusterView positioned:NSWindowAbove relativeTo:nil];
-    } else {
-        [hostView addSubview:self.leadingClusterView positioned:NSWindowAbove relativeTo:nil];
-    }
-
     const bool fullScreen =
         (self.window.styleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen;
     if (fullScreen) {
-        if (self.window.toolbar == self.toolbar) {
-            self.window.toolbar = nil;
-        }
-    } else if (self.window.toolbar != self.toolbar) {
-        self.window.toolbar = self.toolbar;
+        [self installAsTitlebarAccessory];
+        return;
     }
 
-    const NSSize fittingSize = self.leadingClusterView.fittingSize;
-    const NSRect trafficLightsFrame = trafficLightsClusterFrameInView(self.window, hostView);
-    const CGFloat fallbackX = 78.0;
-    const CGFloat fallbackY = [hostView isFlipped]
-                                  ? 8.0
-                                  : qMax<CGFloat>(0.0, NSHeight(hostView.bounds) - fittingSize.height - 8.0);
-    const CGFloat clusterGap = fullScreen ? kLeadingToolbarClusterFullscreenGap
-                                          : kLeadingToolbarClusterWindowedGap;
-    const CGFloat clusterX = NSIsEmptyRect(trafficLightsFrame)
-                                 ? fallbackX
-                                 : qMax<CGFloat>(0.0, NSMaxX(trafficLightsFrame) + clusterGap);
-    const CGFloat clusterY = fullScreen
-                                 ? fallbackY
-                                 : (NSIsEmptyRect(trafficLightsFrame)
-                                        ? fallbackY
-                                        : qMax<CGFloat>(0.0,
-                                                        NSMidY(trafficLightsFrame)
-                                                            - fittingSize.height / 2.0));
-    self.leadingClusterView.frame = NSMakeRect(clusterX,
-                                               clusterY,
-                                               fittingSize.width,
-                                               fittingSize.height);
+    [self installAsToolbarItem];
 }
 
 - (void)detachFromWindow {
@@ -340,11 +395,16 @@ willBeInsertedIntoToolbar:(BOOL)flag {
         return;
     }
 
+    [self removeAccessoryIfNeeded];
+
     if (self.window.toolbar == self.toolbar) {
         self.window.toolbar = nil;
     }
 
+    self.leadingAccessoryController.view = nil;
+    self.leadingClusterItem.view = nil;
     [self.leadingClusterView removeFromSuperview];
+    self.hostMode = KuclawLeadingClusterHostModeNone;
 }
 
 - (void)handleSidebar:(id)sender {
@@ -527,16 +587,24 @@ static CGFloat dragRegionStartXForMetrics(const WindowChromeMetrics& metrics) {
     return safeWidth + kLeadingToolbarClusterFallbackWidth + kTitleBarDragRegionLeadingGap;
 }
 
-static NSRect leadingToolbarClusterFrameForWindow(NSWindow* nsWindow,
-                                                  const WindowChromeMetrics& metrics) {
+static NSRect installedLeadingToolbarClusterFrameForWindow(NSWindow* nsWindow) {
     KuclawChromeToolbarController* controller = toolbarControllerForWindow(nsWindow);
     if (controller != nil) {
+        if (![controller leadingClusterUsesToolbarItem]
+            && ![controller leadingClusterUsesTitlebarAccessory]) {
+            return NSZeroRect;
+        }
         const NSRect frame = [controller leadingClusterFrameInWindowCoordinates];
         if (!NSIsEmptyRect(frame)) {
             return frame;
         }
     }
 
+    return NSZeroRect;
+}
+
+static NSRect fallbackLeadingToolbarClusterFrameForDrag(NSWindow* nsWindow,
+                                                        const WindowChromeMetrics& metrics) {
     if (nsWindow == nil) {
         return NSZeroRect;
     }
@@ -787,8 +855,13 @@ static void installOrUpdateDragMonitor(NSWindow* nsWindow,
                                                                return event;
                                                            }
 
-                                                           const NSRect leadingClusterFrame =
-                                                               leadingToolbarClusterFrameForWindow(strongWindow, metrics);
+                                                           NSRect leadingClusterFrame =
+                                                               installedLeadingToolbarClusterFrameForWindow(strongWindow);
+                                                           if (NSIsEmptyRect(leadingClusterFrame)) {
+                                                               leadingClusterFrame =
+                                                                   fallbackLeadingToolbarClusterFrameForDrag(
+                                                                       strongWindow, metrics);
+                                                           }
                                                            if (!NSIsEmptyRect(leadingClusterFrame)
                                                                && NSPointInRect(event.locationInWindow, leadingClusterFrame)) {
                                                                return event;
@@ -842,7 +915,10 @@ static void installOrUpdateDragRegion(NSWindow* nsWindow,
     }
     [hostView addSubview:dragView positioned:NSWindowBelow relativeTo:nil];
 
-    const NSRect leadingClusterFrame = leadingToolbarClusterFrameForWindow(nsWindow, metrics);
+    NSRect leadingClusterFrame = installedLeadingToolbarClusterFrameForWindow(nsWindow);
+    if (NSIsEmptyRect(leadingClusterFrame)) {
+        leadingClusterFrame = fallbackLeadingToolbarClusterFrameForDrag(nsWindow, metrics);
+    }
     const CGFloat dragRegionStartX =
         dragRegionStartXForClusterFrame(metrics, leadingClusterFrame);
     dragView.frame = dragRegionFrameForView(hostView, titleBarHeight, metrics, dragRegionStartX);
@@ -1224,7 +1300,10 @@ bool MacWindowChrome::titleBarDragRegionCapturesHitTest(QWindow* window) const {
     const CGFloat titleBarHeight =
         qMax(0.0, NSHeight(nsWindow.frame) - NSHeight(nsWindow.contentLayoutRect));
     const WindowChromeMetrics metrics = currentWindowChromeMetrics(nsWindow);
-    const NSRect leadingClusterFrame = leadingToolbarClusterFrameForWindow(nsWindow, metrics);
+    NSRect leadingClusterFrame = installedLeadingToolbarClusterFrameForWindow(nsWindow);
+    if (NSIsEmptyRect(leadingClusterFrame)) {
+        leadingClusterFrame = fallbackLeadingToolbarClusterFrameForDrag(nsWindow, metrics);
+    }
     const NSRect dragRect =
         dragRegionRectForWindow(nsWindow,
                                 titleBarHeight,
@@ -1263,7 +1342,10 @@ bool MacWindowChrome::titleBarDragRegionCapturesTrailingHitTest(QWindow* window)
     const CGFloat titleBarHeight =
         qMax(0.0, NSHeight(nsWindow.frame) - NSHeight(nsWindow.contentLayoutRect));
     const WindowChromeMetrics metrics = currentWindowChromeMetrics(nsWindow);
-    const NSRect leadingClusterFrame = leadingToolbarClusterFrameForWindow(nsWindow, metrics);
+    NSRect leadingClusterFrame = installedLeadingToolbarClusterFrameForWindow(nsWindow);
+    if (NSIsEmptyRect(leadingClusterFrame)) {
+        leadingClusterFrame = fallbackLeadingToolbarClusterFrameForDrag(nsWindow, metrics);
+    }
     const NSRect dragRect =
         dragRegionRectForWindow(nsWindow,
                                 titleBarHeight,
@@ -1357,8 +1439,7 @@ bool MacWindowChrome::hasLeadingToolbarCluster(QWindow* window) const {
         return false;
     }
 
-    const NSRect frame =
-        leadingToolbarClusterFrameForWindow(nativeView.window, currentWindowChromeMetrics(nativeView.window));
+    const NSRect frame = installedLeadingToolbarClusterFrameForWindow(nativeView.window);
     return !NSIsEmptyRect(frame);
 #else
     Q_UNUSED(window);
@@ -1382,8 +1463,7 @@ QRect MacWindowChrome::leadingToolbarClusterFrame(QWindow* window) const {
         return {};
     }
 
-    return qRectFromNSRect(
-        leadingToolbarClusterFrameForWindow(nativeView.window, currentWindowChromeMetrics(nativeView.window)));
+    return qRectFromNSRect(installedLeadingToolbarClusterFrameForWindow(nativeView.window));
 #else
     Q_UNUSED(window);
     return {};
@@ -1407,8 +1487,7 @@ bool MacWindowChrome::leadingToolbarClusterCapturesHitTest(QWindow* window) cons
     }
 
     NSWindow* nsWindow = nativeView.window;
-    const NSRect frame =
-        leadingToolbarClusterFrameForWindow(nsWindow, currentWindowChromeMetrics(nsWindow));
+    const NSRect frame = installedLeadingToolbarClusterFrameForWindow(nsWindow);
     if (NSIsEmptyRect(frame)) {
         return false;
     }
@@ -1445,6 +1524,54 @@ bool MacWindowChrome::leadingToolbarClusterUsesDirectTitlebarHost(QWindow* windo
 
     KuclawChromeToolbarController* controller = toolbarControllerForWindow(nativeView.window);
     return controller != nil && [controller leadingClusterUsesDirectTitlebarHost];
+#else
+    Q_UNUSED(window);
+    return false;
+#endif
+}
+
+bool MacWindowChrome::leadingToolbarClusterUsesToolbarItem(QWindow* window) const {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    if (window == nullptr || !runningOnCocoaPlatform()) {
+        return false;
+    }
+
+    const WId nativeId = window->winId();
+    if (nativeId == 0) {
+        return false;
+    }
+
+    auto* nativeView = (__bridge NSView*)(reinterpret_cast<void*>(nativeId));
+    if (nativeView == nil || nativeView.window == nil) {
+        return false;
+    }
+
+    KuclawChromeToolbarController* controller = toolbarControllerForWindow(nativeView.window);
+    return controller != nil && [controller leadingClusterUsesToolbarItem];
+#else
+    Q_UNUSED(window);
+    return false;
+#endif
+}
+
+bool MacWindowChrome::leadingToolbarClusterUsesTitlebarAccessory(QWindow* window) const {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    if (window == nullptr || !runningOnCocoaPlatform()) {
+        return false;
+    }
+
+    const WId nativeId = window->winId();
+    if (nativeId == 0) {
+        return false;
+    }
+
+    auto* nativeView = (__bridge NSView*)(reinterpret_cast<void*>(nativeId));
+    if (nativeView == nil || nativeView.window == nil) {
+        return false;
+    }
+
+    KuclawChromeToolbarController* controller = toolbarControllerForWindow(nativeView.window);
+    return controller != nil && [controller leadingClusterUsesTitlebarAccessory];
 #else
     Q_UNUSED(window);
     return false;

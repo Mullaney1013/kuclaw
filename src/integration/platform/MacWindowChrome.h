@@ -56,6 +56,8 @@ public:
     QRect leadingToolbarClusterFrame(QWindow* window) const;
     bool leadingToolbarClusterCapturesHitTest(QWindow* window) const;
     bool leadingToolbarClusterUsesDirectTitlebarHost(QWindow* window) const;
+    bool leadingToolbarClusterUsesToolbarItem(QWindow* window) const;
+    bool leadingToolbarClusterUsesTitlebarAccessory(QWindow* window) const;
     NativeNavigationState navigationEnabledState(QWindow* window) const;
     bool hasHiddenTitlebarSeparator(WId nativeId) const;
 };
