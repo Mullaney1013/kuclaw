@@ -243,6 +243,42 @@ private slots:
         QCOMPARE(chrome.navigationEnabledState(&window).forwardEnabled, true);
     }
 
+    void macWindowChromeKeepsWindowedToolbarClusterInstalledWhenToolbarStateUpdates() {
+        if (QGuiApplication::platformName() != "cocoa") {
+            QSKIP("Windowed native toolbar reapply verification requires the cocoa platform plugin.");
+        }
+
+        if (QGuiApplication::screens().isEmpty()) {
+            QSKIP("No screens available for windowed native toolbar reapply verification.");
+        }
+
+        QWindow window;
+        window.resize(640, 480);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        MacWindowChrome chrome;
+        chrome.attach(&window);
+
+        QTRY_VERIFY(chrome.hasLeadingToolbarCluster(&window));
+        QTRY_VERIFY(chrome.leadingToolbarClusterUsesToolbarItem(&window));
+        QTRY_VERIFY(chrome.leadingToolbarClusterCapturesHitTest(&window));
+
+        chrome.updateNativeToolbarState(&window, true, false);
+
+        QTRY_VERIFY(chrome.hasLeadingToolbarCluster(&window));
+        QTRY_VERIFY(chrome.leadingToolbarClusterUsesToolbarItem(&window));
+        QTRY_VERIFY(chrome.leadingToolbarClusterCapturesHitTest(&window));
+        QVERIFY(!chrome.leadingToolbarClusterFrame(&window).isEmpty());
+
+        chrome.updateNativeToolbarState(&window, true, true);
+
+        QTRY_VERIFY(chrome.hasLeadingToolbarCluster(&window));
+        QTRY_VERIFY(chrome.leadingToolbarClusterUsesToolbarItem(&window));
+        QTRY_VERIFY(chrome.leadingToolbarClusterCapturesHitTest(&window));
+        QVERIFY(!chrome.leadingToolbarClusterFrame(&window).isEmpty());
+    }
+
     void macWindowChromeFullscreenKeepsLeadingClusterAlongsideTrafficLights() {
         if (QGuiApplication::platformName() != "cocoa") {
             QSKIP("Native fullscreen titlebar verification requires the cocoa platform plugin.");

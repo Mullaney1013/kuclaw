@@ -345,7 +345,9 @@ willBeInsertedIntoToolbar:(BOOL)flag {
     [self removeAccessoryIfNeeded];
 
     self.leadingAccessoryController.view = nil;
-    [self.leadingClusterView removeFromSuperview];
+    if (self.hostMode != KuclawLeadingClusterHostModeToolbarItem) {
+        [self.leadingClusterView removeFromSuperview];
+    }
     self.leadingClusterItem.view = self.leadingClusterView;
     self.leadingClusterItem.minSize = self.leadingClusterView.fittingSize;
     self.leadingClusterItem.maxSize = self.leadingClusterView.fittingSize;
