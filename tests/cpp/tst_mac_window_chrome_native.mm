@@ -113,6 +113,21 @@ NSWindow* createReferenceWindow() {
     [nsWindow makeKeyAndOrderFront:nil];
     return nsWindow;
 }
+
+NSApplicationPresentationOptions fullscreenPresentationOptionsForWindow(NSWindow* nsWindow) {
+    if (nsWindow == nil || nsWindow.delegate == nil) {
+        return 0;
+    }
+
+    id delegate = nsWindow.delegate;
+    SEL selector = @selector(window:willUseFullScreenPresentationOptions:);
+    if (![delegate respondsToSelector:selector]) {
+        return 0;
+    }
+
+    return ((NSApplicationPresentationOptions(*)(id, SEL, NSWindow*, NSApplicationPresentationOptions))
+                [delegate methodForSelector:selector])(delegate, selector, nsWindow, 0);
+}
 }  // namespace
 
 class MacWindowChromeNativeTest : public QObject {
@@ -295,6 +310,13 @@ private slots:
         MacWindowChrome chrome;
         const WindowChromeMetrics metrics = chrome.attach(&window);
         QVERIFY(chrome.hasToolbarChrome(window.winId()));
+        NSView* nativeView = (__bridge NSView*)(reinterpret_cast<void*>(window.winId()));
+        NSWindow* nativeWindow = nativeView != nil ? nativeView.window : nil;
+        QVERIFY(nativeWindow != nil);
+        const NSApplicationPresentationOptions presentationOptions =
+            fullscreenPresentationOptionsForWindow(nativeWindow);
+        QVERIFY(presentationOptions & NSApplicationPresentationAutoHideToolbar);
+        QVERIFY(presentationOptions & NSApplicationPresentationAutoHideMenuBar);
         QVERIFY(chrome.toggleNativeFullscreen(&window));
         QTRY_COMPARE(window.visibility(), QWindow::FullScreen);
         QTRY_VERIFY(chrome.hasLeadingToolbarCluster(&window));
@@ -324,9 +346,6 @@ private slots:
                 .toUtf8();
         QVERIFY2(qAbs(fullscreenClusterTopInset - fullscreenGeometry.clusterTopInset) <= 8,
                  fullscreenTopInsetMessage.constData());
-        NSView* nativeView = (__bridge NSView*)(reinterpret_cast<void*>(window.winId()));
-        NSWindow* nativeWindow = nativeView != nil ? nativeView.window : nil;
-        QVERIFY(nativeWindow != nil);
         const NSRect fullscreenTrafficLightsFrame = trafficLightsClusterFrameForNSWindow(nativeWindow);
         QVERIFY(!NSIsEmptyRect(fullscreenTrafficLightsFrame));
         const int fullscreenLeadingGap =

@@ -17,6 +17,11 @@
 @interface KuclawHoverSegmentedControl : NSSegmentedControl
 @end
 
+@interface KuclawChromeWindowDelegateBridge : NSObject <NSWindowDelegate>
+@property(nonatomic, weak) id<NSWindowDelegate> originalDelegate;
+- (instancetype)initWithOriginalDelegate:(id<NSWindowDelegate>)originalDelegate;
+@end
+
 static const CGFloat kLeadingToolbarClusterWindowedGap = 10.0;
 static NSToolbarItemIdentifier const kLeadingClusterToolbarItemIdentifier =
     @"com.mullaney1013.kuclaw.leadingCluster";
@@ -108,6 +113,48 @@ typedef NS_ENUM(NSInteger, KuclawLeadingClusterHostMode) {
 - (void)resetCursorRects {
     [super resetCursorRects];
     [self addCursorRect:self.bounds cursor:[NSCursor pointingHandCursor]];
+}
+
+@end
+
+@implementation KuclawChromeWindowDelegateBridge
+
+- (instancetype)initWithOriginalDelegate:(id<NSWindowDelegate>)originalDelegate {
+    self = [super init];
+    if (self != nil) {
+        self.originalDelegate = originalDelegate;
+    }
+
+    return self;
+}
+
+- (BOOL)respondsToSelector:(SEL)selector {
+    if (selector == @selector(window:willUseFullScreenPresentationOptions:)) {
+        return YES;
+    }
+
+    return [super respondsToSelector:selector] || [self.originalDelegate respondsToSelector:selector];
+}
+
+- (id)forwardingTargetForSelector:(SEL)selector {
+    if (selector != @selector(window:willUseFullScreenPresentationOptions:)
+        && [self.originalDelegate respondsToSelector:selector]) {
+        return self.originalDelegate;
+    }
+
+    return [super forwardingTargetForSelector:selector];
+}
+
+- (NSApplicationPresentationOptions)window:(NSWindow*)window
+         willUseFullScreenPresentationOptions:(NSApplicationPresentationOptions)proposedOptions {
+    NSApplicationPresentationOptions options = proposedOptions;
+    id<NSWindowDelegate> originalDelegate = self.originalDelegate;
+    if (originalDelegate != nil
+        && [originalDelegate respondsToSelector:@selector(window:willUseFullScreenPresentationOptions:)]) {
+        options = [originalDelegate window:window willUseFullScreenPresentationOptions:proposedOptions];
+    }
+
+    return options | NSApplicationPresentationAutoHideToolbar | NSApplicationPresentationAutoHideMenuBar;
 }
 
 @end
@@ -334,6 +381,7 @@ const void* kWindowDragViewAssociationKey = &kWindowDragViewAssociationKey;
 const void* kWindowDragMonitorAssociationKey = &kWindowDragMonitorAssociationKey;
 const void* kWindowToolbarAssociationKey = &kWindowToolbarAssociationKey;
 const void* kWindowToolbarControllerAssociationKey = &kWindowToolbarControllerAssociationKey;
+const void* kWindowDelegateBridgeAssociationKey = &kWindowDelegateBridgeAssociationKey;
 
 static bool runningOnCocoaPlatform() {
     return QGuiApplication::platformName() == QStringLiteral("cocoa");
@@ -398,6 +446,53 @@ static KuclawChromeToolbarController* toolbarControllerForWindow(NSWindow* nsWin
 
     return (KuclawChromeToolbarController*)objc_getAssociatedObject(
         nsWindow, kWindowToolbarControllerAssociationKey);
+}
+
+static KuclawChromeWindowDelegateBridge* windowDelegateBridgeForWindow(NSWindow* nsWindow) {
+    if (nsWindow == nil) {
+        return nil;
+    }
+
+    return (KuclawChromeWindowDelegateBridge*)objc_getAssociatedObject(
+        nsWindow, kWindowDelegateBridgeAssociationKey);
+}
+
+static void installOrUpdateWindowDelegateBridge(NSWindow* nsWindow) {
+    if (nsWindow == nil) {
+        return;
+    }
+
+    KuclawChromeWindowDelegateBridge* bridge = windowDelegateBridgeForWindow(nsWindow);
+    id<NSWindowDelegate> currentDelegate = (id<NSWindowDelegate>)nsWindow.delegate;
+    if (bridge == nil) {
+        bridge = [[KuclawChromeWindowDelegateBridge alloc] initWithOriginalDelegate:currentDelegate];
+        objc_setAssociatedObject(
+            nsWindow, kWindowDelegateBridgeAssociationKey, bridge, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } else if (currentDelegate != bridge) {
+        bridge.originalDelegate = currentDelegate;
+    }
+
+    if (nsWindow.delegate != bridge) {
+        nsWindow.delegate = bridge;
+    }
+}
+
+static void detachWindowDelegateBridge(NSWindow* nsWindow) {
+    if (nsWindow == nil) {
+        return;
+    }
+
+    KuclawChromeWindowDelegateBridge* bridge = windowDelegateBridgeForWindow(nsWindow);
+    if (bridge == nil) {
+        return;
+    }
+
+    if (nsWindow.delegate == bridge) {
+        nsWindow.delegate = bridge.originalDelegate;
+    }
+
+    objc_setAssociatedObject(
+        nsWindow, kWindowDelegateBridgeAssociationKey, nil, OBJC_ASSOCIATION_ASSIGN);
 }
 
 static WindowChromeMetrics currentWindowChromeMetrics(NSWindow* nsWindow) {
@@ -711,6 +806,7 @@ static KuclawChromeToolbarController* installOrUpdateToolbarChrome(NSWindow* nsW
         nsWindow.toolbarStyle = NSWindowToolbarStyleUnified;
         nsWindow.titlebarSeparatorStyle = NSTitlebarSeparatorStyleNone;
     }
+    installOrUpdateWindowDelegateBridge(nsWindow);
     controller.toolbar.showsBaselineSeparator = NO;
     [controller installForCurrentWindowState];
 
@@ -1004,6 +1100,7 @@ void MacWindowChrome::detach(WId nativeId) {
                              kWindowToolbarControllerAssociationKey,
                              nil,
                              OBJC_ASSOCIATION_ASSIGN);
+    detachWindowDelegateBridge(nsWindow);
 #else
     Q_UNUSED(nativeId);
 #endif
