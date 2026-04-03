@@ -264,8 +264,9 @@ private slots:
         QTRY_COMPARE(window.visibility(), QWindow::FullScreen);
         QTRY_VERIFY(chrome.hasLeadingToolbarCluster(&window));
         QVERIFY(!chrome.hasToolbarChrome(window.winId()));
-        QTRY_VERIFY(chrome.leadingToolbarClusterUsesTitlebarAccessory(&window));
+        QTRY_VERIFY(chrome.leadingToolbarClusterUsesDirectTitlebarHost(&window));
         QVERIFY(!chrome.leadingToolbarClusterUsesToolbarItem(&window));
+        QVERIFY(!chrome.leadingToolbarClusterUsesTitlebarAccessory(&window));
         QTRY_VERIFY(chrome.leadingToolbarClusterCapturesHitTest(&window));
         QVERIFY(!chrome.leadingToolbarClusterFrame(&window).isEmpty());
         QVERIFY(chrome.leadingToolbarClusterFrame(&window).left() >= metrics.trafficLightsSafeWidth);
@@ -310,6 +311,7 @@ private slots:
         QTRY_COMPARE(window.visibility(), QWindow::Windowed);
         QTRY_VERIFY(chrome.hasToolbarChrome(window.winId()));
         QTRY_VERIFY(chrome.hasLeadingToolbarCluster(&window));
+        QVERIFY(!chrome.leadingToolbarClusterUsesDirectTitlebarHost(&window));
         QTRY_VERIFY(chrome.leadingToolbarClusterUsesToolbarItem(&window));
         QVERIFY(!chrome.leadingToolbarClusterUsesTitlebarAccessory(&window));
         QTRY_VERIFY(chrome.leadingToolbarClusterCapturesHitTest(&window));

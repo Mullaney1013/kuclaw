@@ -25,6 +25,7 @@ static NSToolbarItemIdentifier const kLeadingClusterToolbarItemIdentifier =
 typedef NS_ENUM(NSInteger, KuclawLeadingClusterHostMode) {
     KuclawLeadingClusterHostModeNone = 0,
     KuclawLeadingClusterHostModeToolbarItem,
+    KuclawLeadingClusterHostModeDirectTitlebarHost,
     KuclawLeadingClusterHostModeTitlebarAccessory,
 };
 
@@ -317,7 +318,7 @@ willBeInsertedIntoToolbar:(BOOL)flag {
 }
 
 - (BOOL)leadingClusterUsesDirectTitlebarHost {
-    return self.hostMode != KuclawLeadingClusterHostModeNone;
+    return self.hostMode == KuclawLeadingClusterHostModeDirectTitlebarHost;
 }
 
 - (BOOL)leadingClusterUsesToolbarItem {
@@ -344,6 +345,7 @@ willBeInsertedIntoToolbar:(BOOL)flag {
     [self removeAccessoryIfNeeded];
 
     self.leadingAccessoryController.view = nil;
+    [self.leadingClusterView removeFromSuperview];
     self.leadingClusterItem.view = self.leadingClusterView;
     self.leadingClusterItem.minSize = self.leadingClusterView.fittingSize;
     self.leadingClusterItem.maxSize = self.leadingClusterView.fittingSize;
@@ -354,6 +356,45 @@ willBeInsertedIntoToolbar:(BOOL)flag {
 
     [self.toolbar validateVisibleItems];
     self.hostMode = KuclawLeadingClusterHostModeToolbarItem;
+}
+
+- (void)installAsDirectTitlebarHost {
+    [self removeAccessoryIfNeeded];
+
+    if (self.window.toolbar == self.toolbar) {
+        self.window.toolbar = nil;
+    }
+
+    self.leadingAccessoryController.view = nil;
+    self.leadingClusterItem.view = nil;
+
+    NSView* hostView = leadingClusterHostViewForWindow(self.window);
+    if (hostView == nil) {
+        self.hostMode = KuclawLeadingClusterHostModeNone;
+        return;
+    }
+
+    if (self.leadingClusterView.superview != hostView) {
+        [self.leadingClusterView removeFromSuperview];
+        [hostView addSubview:self.leadingClusterView];
+    }
+
+    [hostView layoutSubtreeIfNeeded];
+
+    const NSRect trafficLightsFrame = trafficLightsClusterFrameInView(self.window, hostView);
+    const NSSize fittingSize = self.leadingClusterView.fittingSize;
+    const CGFloat clusterX =
+        NSIsEmptyRect(trafficLightsFrame) ? 78.0 : NSMaxX(trafficLightsFrame) + kLeadingToolbarClusterFullscreenGap;
+    const CGFloat clusterY =
+        NSIsEmptyRect(trafficLightsFrame)
+            ? qMax<CGFloat>(0.0, NSHeight(hostView.bounds) - fittingSize.height - 8.0)
+            : NSMidY(trafficLightsFrame) - (fittingSize.height / 2.0);
+    self.leadingClusterView.frame = NSMakeRect(clusterX,
+                                               qMax<CGFloat>(0.0, clusterY),
+                                               fittingSize.width,
+                                               fittingSize.height);
+    self.leadingClusterView.autoresizingMask = NSViewMaxXMargin | NSViewMinYMargin;
+    self.hostMode = KuclawLeadingClusterHostModeDirectTitlebarHost;
 }
 
 - (void)installAsTitlebarAccessory {
@@ -383,7 +424,7 @@ willBeInsertedIntoToolbar:(BOOL)flag {
     const bool fullScreen =
         (self.window.styleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen;
     if (fullScreen) {
-        [self installAsTitlebarAccessory];
+        [self installAsDirectTitlebarHost];
         return;
     }
 
