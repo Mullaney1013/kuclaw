@@ -17,7 +17,6 @@ ApplicationWindow {
     property var shellState: WorkspaceShellState.createInitialState()
     property var backHistory: []
     property var forwardHistory: []
-    property bool nativeTitleBarRectsUpdatePending: false
     readonly property var mainContentGeometry: WorkspaceShellState.mainContentGeometry(root.width, root.shellState.sidebarWidth)
     readonly property var chromeMetrics: ({
         usesNativeTrafficLights: windowChromeViewModel ? windowChromeViewModel.usesNativeTrafficLights : false,
@@ -48,8 +47,12 @@ ApplicationWindow {
     Component.onCompleted: {
         if (windowChromeViewModel) {
             windowChromeViewModel.attach(root)
+            root.syncNativeToolbarState()
         }
     }
+    onBackHistoryChanged: root.syncNativeToolbarState()
+    onForwardHistoryChanged: root.syncNativeToolbarState()
+    onChromeMetricsChanged: root.syncNativeToolbarState()
 
     Shortcut {
         sequence: "Ctrl+Meta+F"
@@ -134,49 +137,13 @@ ApplicationWindow {
         return "Select an item from the sidebar"
     }
 
-    function updateNativeTitleBarControlRects() {
+    function syncNativeToolbarState() {
         if (!windowChromeViewModel || !root.chromeMetrics.usesNativeTrafficLights) {
             return
         }
 
-        const togglePoint = titleBarControls.sidebarToggleTarget.mapToItem(null, 0, 0)
-        const backEnabled = root.backHistory.length > 0
-        const forwardEnabled = root.forwardHistory.length > 0
-        const backPoint = backEnabled
-                              ? titleBarControls.backButtonTarget.mapToItem(null, 0, 0)
-                              : Qt.point(0, 0)
-        const forwardPoint = forwardEnabled
-                                 ? titleBarControls.forwardButtonTarget.mapToItem(null, 0, 0)
-                                 : Qt.point(0, 0)
-
-        windowChromeViewModel.updateTitleBarControlRects(togglePoint.x,
-                                                         togglePoint.y,
-                                                         titleBarControls.sidebarToggleTarget.width,
-                                                         titleBarControls.sidebarToggleTarget.height,
-                                                         backPoint.x,
-                                                         backPoint.y,
-                                                         backEnabled ? titleBarControls.backButtonTarget.width : 0,
-                                                         backEnabled ? titleBarControls.backButtonTarget.height : 0,
-                                                         forwardPoint.x,
-                                                         forwardPoint.y,
-                                                         forwardEnabled ? titleBarControls.forwardButtonTarget.width : 0,
-                                                         forwardEnabled ? titleBarControls.forwardButtonTarget.height : 0)
-    }
-
-    function scheduleNativeTitleBarControlRectsUpdate() {
-        if (!windowChromeViewModel || !root.chromeMetrics.usesNativeTrafficLights) {
-            return
-        }
-
-        if (root.nativeTitleBarRectsUpdatePending) {
-            return
-        }
-
-        root.nativeTitleBarRectsUpdatePending = true
-        Qt.callLater(function() {
-            root.nativeTitleBarRectsUpdatePending = false
-            root.updateNativeTitleBarControlRects()
-        })
+        windowChromeViewModel.updateNativeToolbarState(root.backHistory.length > 0,
+                                                       root.forwardHistory.length > 0)
     }
 
     component ExpandedSidebarButton: Item {
@@ -311,10 +278,6 @@ ApplicationWindow {
             root.goForward()
         }
     }
-
-    onChromeMetricsChanged: root.scheduleNativeTitleBarControlRectsUpdate()
-    onWidthChanged: root.scheduleNativeTitleBarControlRectsUpdate()
-    onHeightChanged: root.scheduleNativeTitleBarControlRectsUpdate()
 
     Rectangle {
         id: sidebarPanel
@@ -548,7 +511,6 @@ ApplicationWindow {
             backEnabled: root.backHistory.length > 0
             forwardEnabled: root.forwardHistory.length > 0
             showTrafficLights: TitleBarLayout.showCustomTrafficLights(root.chromeMetrics)
-            routeClicksThroughNative: root.chromeMetrics.usesNativeTrafficLights
             sidebarToggleLeftMargin: TitleBarLayout.sidebarToggleLeftMargin(root.chromeMetrics)
             onCloseRequested: root.close()
             onMinimizeRequested: root.showMinimized()
@@ -556,14 +518,7 @@ ApplicationWindow {
             onSidebarToggleRequested: root.dispatchShellEvent("TOGGLE_CLICKED")
             onBackRequested: root.goBack()
             onForwardRequested: root.goForward()
-
-            Component.onCompleted: root.scheduleNativeTitleBarControlRectsUpdate()
-            onXChanged: root.scheduleNativeTitleBarControlRectsUpdate()
-            onYChanged: root.scheduleNativeTitleBarControlRectsUpdate()
-            onWidthChanged: root.scheduleNativeTitleBarControlRectsUpdate()
-            onHeightChanged: root.scheduleNativeTitleBarControlRectsUpdate()
-            onSidebarToggleLeftMarginChanged: root.scheduleNativeTitleBarControlRectsUpdate()
-            onControlRectsSyncRequested: root.scheduleNativeTitleBarControlRectsUpdate()
+            visible: !root.chromeMetrics.usesNativeTrafficLights
         }
     }
 

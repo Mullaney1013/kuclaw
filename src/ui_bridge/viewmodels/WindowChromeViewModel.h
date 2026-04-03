@@ -27,12 +27,14 @@ public:
     using DragFunction = std::function<bool(QWindow*)>;
     using ToggleFullscreenFunction = std::function<bool(QWindow*)>;
     using DetachFunction = std::function<void(QWindow*, WId)>;
+    using UpdateToolbarStateFunction = std::function<void(QWindow*, bool, bool)>;
 
     explicit WindowChromeViewModel(QObject* parent = nullptr,
                                    AttachFunction attachFunction = {},
                                    DragFunction dragFunction = {},
                                    ToggleFullscreenFunction toggleFullscreenFunction = {},
-                                   DetachFunction detachFunction = {});
+                                   DetachFunction detachFunction = {},
+                                   UpdateToolbarStateFunction updateToolbarStateFunction = {});
     ~WindowChromeViewModel() override;
 
     bool usesNativeTrafficLights() const;
@@ -42,18 +44,7 @@ public:
     Q_INVOKABLE void attach(QObject* windowObject);
     Q_INVOKABLE bool beginSystemDrag();
     Q_INVOKABLE bool toggleNativeFullscreen();
-    Q_INVOKABLE void updateTitleBarControlRects(qreal sidebarToggleX,
-                                                qreal sidebarToggleY,
-                                                qreal sidebarToggleWidth,
-                                                qreal sidebarToggleHeight,
-                                                qreal backX,
-                                                qreal backY,
-                                                qreal backWidth,
-                                                qreal backHeight,
-                                                qreal forwardX,
-                                                qreal forwardY,
-                                                qreal forwardWidth,
-                                                qreal forwardHeight);
+    Q_INVOKABLE void updateNativeToolbarState(bool backEnabled, bool forwardEnabled);
 
 signals:
     void metricsChanged();
@@ -83,6 +74,7 @@ private:
     DragFunction dragFunction_;
     ToggleFullscreenFunction toggleFullscreenFunction_;
     DetachFunction detachFunction_;
+    UpdateToolbarStateFunction updateToolbarStateFunction_;
     MacWindowChrome chrome_;
     WindowChromeMetrics metrics_;
     QPointer<QWindow> trackedWindow_;
@@ -92,4 +84,6 @@ private:
     int retryAttempts_ = 0;
     bool nativeChromeAttached_ = false;
     bool ownsNativeChromeAttachment_ = false;
+    bool nativeBackEnabled_ = false;
+    bool nativeForwardEnabled_ = false;
 };

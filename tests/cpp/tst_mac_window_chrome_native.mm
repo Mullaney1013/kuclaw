@@ -32,6 +32,24 @@
 
 namespace {
 
+NSRect trafficLightsClusterFrameForNSWindow(NSWindow* nsWindow) {
+    if (nsWindow == nil) {
+        return NSZeroRect;
+    }
+
+    NSButton* closeButton = [nsWindow standardWindowButton:NSWindowCloseButton];
+    NSButton* minimizeButton = [nsWindow standardWindowButton:NSWindowMiniaturizeButton];
+    NSButton* zoomButton = [nsWindow standardWindowButton:NSWindowZoomButton];
+    if (closeButton == nil || minimizeButton == nil || zoomButton == nil) {
+        return NSZeroRect;
+    }
+
+    const NSRect closeFrame = [closeButton convertRect:closeButton.bounds toView:nil];
+    const NSRect minimizeFrame = [minimizeButton convertRect:minimizeButton.bounds toView:nil];
+    const NSRect zoomFrame = [zoomButton convertRect:zoomButton.bounds toView:nil];
+    return NSUnionRect(NSUnionRect(closeFrame, minimizeFrame), zoomFrame);
+}
+
 TrafficLightsGeometry trafficLightsGeometryForNSWindow(NSWindow* nsWindow) {
     TrafficLightsGeometry geometry;
     if (nsWindow == nil) {
@@ -157,13 +175,13 @@ private slots:
         [referenceWindow orderOut:nil];
     }
 
-    void windowChromeViewModelReappliesDragRegionWhenControlRectsChange() {
+    void macWindowChromeInstallsLeadingNativeToolbarCluster() {
         if (QGuiApplication::platformName() != "cocoa") {
-            QSKIP("Native drag-region reapply verification requires the cocoa platform plugin.");
+            QSKIP("Native leading-cluster verification requires the cocoa platform plugin.");
         }
 
         if (QGuiApplication::screens().isEmpty()) {
-            QSKIP("No screens available for native drag-region reapply verification.");
+            QSKIP("No screens available for native leading-cluster verification.");
         }
 
         QWindow window;
@@ -171,29 +189,127 @@ private slots:
         window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window));
 
-        WindowChromeViewModel viewModel;
-        viewModel.attach(&window);
-        QTRY_VERIFY(viewModel.usesNativeTrafficLights());
+        MacWindowChrome chrome;
+        const WindowChromeMetrics metrics = chrome.attach(&window);
+
+        QTRY_VERIFY(chrome.hasToolbarChrome(window.winId()));
+        QTRY_VERIFY(chrome.hasLeadingToolbarCluster(&window));
+        QTRY_VERIFY(chrome.leadingToolbarClusterUsesDirectTitlebarHost(&window));
+        QVERIFY(!chrome.leadingToolbarClusterFrame(&window).isEmpty());
+        QTRY_VERIFY(chrome.leadingToolbarClusterCapturesHitTest(&window));
+
+        const TrafficLightsGeometry geometry = chrome.trafficLightsGeometry(&window);
+        QVERIFY(geometry.valid);
+        const QRect leadingClusterFrame = chrome.leadingToolbarClusterFrame(&window);
+        const QByteArray rowMessage =
+            QString("Leading native cluster should stay on the same titlebar row as the traffic lights."
+                    " clusterMidY=%1 trafficMidY=%2")
+                .arg(leadingClusterFrame.center().y())
+                .arg(geometry.clusterMidY)
+                .toUtf8();
+        QVERIFY2(qAbs(leadingClusterFrame.center().y() - geometry.clusterMidY) <= 4,
+                 rowMessage.constData());
+        QVERIFY(leadingClusterFrame.left() >= metrics.trafficLightsSafeWidth);
+    }
+
+    void macWindowChromeUpdatesNativeNavigationEnabledState() {
+        if (QGuiApplication::platformName() != "cocoa") {
+            QSKIP("Native navigation enabled-state verification requires the cocoa platform plugin.");
+        }
+
+        if (QGuiApplication::screens().isEmpty()) {
+            QSKIP("No screens available for native navigation enabled-state verification.");
+        }
+
+        QWindow window;
+        window.resize(640, 480);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
 
         MacWindowChrome chrome;
-        const int baselineStartX = chrome.currentTitleBarDragRegionStartX(&window);
-        QVERIFY(baselineStartX > 0);
+        chrome.attach(&window);
 
-        viewModel.updateTitleBarControlRects(120.0,
-                                             100.0,
-                                             20.0,
-                                             16.0,
-                                             160.0,
-                                             100.0,
-                                             12.0,
-                                             14.0,
-                                             176.0,
-                                             100.0,
-                                             12.0,
-                                             14.0);
+        chrome.updateNativeToolbarState(&window, false, false);
+        QCOMPARE(chrome.navigationEnabledState(&window).backEnabled, false);
+        QCOMPARE(chrome.navigationEnabledState(&window).forwardEnabled, false);
 
-        QTRY_COMPARE(chrome.currentTitleBarDragRegionStartX(&window), 208);
-        QVERIFY(chrome.currentTitleBarDragRegionStartX(&window) > baselineStartX);
+        chrome.updateNativeToolbarState(&window, true, false);
+        QCOMPARE(chrome.navigationEnabledState(&window).backEnabled, true);
+        QCOMPARE(chrome.navigationEnabledState(&window).forwardEnabled, false);
+
+        chrome.updateNativeToolbarState(&window, true, true);
+        QCOMPARE(chrome.navigationEnabledState(&window).backEnabled, true);
+        QCOMPARE(chrome.navigationEnabledState(&window).forwardEnabled, true);
+    }
+
+    void macWindowChromeFullscreenKeepsLeadingClusterAlongsideTrafficLights() {
+        if (QGuiApplication::platformName() != "cocoa") {
+            QSKIP("Native fullscreen titlebar verification requires the cocoa platform plugin.");
+        }
+
+        if (QGuiApplication::screens().isEmpty()) {
+            QSKIP("No screens available for native fullscreen titlebar verification.");
+        }
+
+        QWindow window;
+        window.resize(640, 480);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        MacWindowChrome chrome;
+        const WindowChromeMetrics metrics = chrome.attach(&window);
+        QVERIFY(chrome.hasToolbarChrome(window.winId()));
+        QVERIFY(chrome.toggleNativeFullscreen(&window));
+        QTRY_COMPARE(window.visibility(), QWindow::FullScreen);
+        QTRY_VERIFY(chrome.hasLeadingToolbarCluster(&window));
+        QTRY_VERIFY(chrome.leadingToolbarClusterUsesDirectTitlebarHost(&window));
+        QTRY_VERIFY(chrome.leadingToolbarClusterCapturesHitTest(&window));
+        QVERIFY(!chrome.leadingToolbarClusterFrame(&window).isEmpty());
+        QVERIFY(chrome.leadingToolbarClusterFrame(&window).left() >= metrics.trafficLightsSafeWidth);
+        const TrafficLightsGeometry fullscreenGeometry = chrome.trafficLightsGeometry(&window);
+        QVERIFY(fullscreenGeometry.valid);
+        const QRect fullscreenClusterFrame = chrome.leadingToolbarClusterFrame(&window);
+        const QByteArray fullscreenRowMessage =
+            QString("Fullscreen leading native cluster should stay on the same titlebar row as the traffic lights."
+                    " clusterMidY=%1 trafficMidY=%2")
+                .arg(fullscreenClusterFrame.center().y())
+                .arg(fullscreenGeometry.clusterMidY)
+                .toUtf8();
+        QVERIFY2(qAbs(fullscreenClusterFrame.center().y() - fullscreenGeometry.clusterMidY) <= 4,
+                 fullscreenRowMessage.constData());
+        const int fullscreenClusterTopInset =
+            window.frameGeometry().height() - fullscreenClusterFrame.top() - fullscreenClusterFrame.height();
+        const QByteArray fullscreenTopInsetMessage =
+            QString("Fullscreen leading native cluster should stay close to the top-left chrome band."
+                    " clusterTopInset=%1 trafficTopInset=%2")
+                .arg(fullscreenClusterTopInset)
+                .arg(fullscreenGeometry.clusterTopInset)
+                .toUtf8();
+        QVERIFY2(qAbs(fullscreenClusterTopInset - fullscreenGeometry.clusterTopInset) <= 8,
+                 fullscreenTopInsetMessage.constData());
+        NSView* nativeView = (__bridge NSView*)(reinterpret_cast<void*>(window.winId()));
+        NSWindow* nativeWindow = nativeView != nil ? nativeView.window : nil;
+        QVERIFY(nativeWindow != nil);
+        const NSRect fullscreenTrafficLightsFrame = trafficLightsClusterFrameForNSWindow(nativeWindow);
+        QVERIFY(!NSIsEmptyRect(fullscreenTrafficLightsFrame));
+        const int fullscreenLeadingGap =
+            fullscreenClusterFrame.left() - qRound(NSMaxX(fullscreenTrafficLightsFrame));
+        const QByteArray fullscreenLeadingGapMessage =
+            QString("Fullscreen leading native cluster should sit close to the traffic lights."
+                    " leadingGap=%1")
+                .arg(fullscreenLeadingGap)
+                .toUtf8();
+        QVERIFY2(fullscreenLeadingGap >= 0 && fullscreenLeadingGap <= 1,
+                 fullscreenLeadingGapMessage.constData());
+        QTRY_VERIFY(!chrome.hasToolbarChrome(window.winId()));
+        QTRY_VERIFY(chrome.hasHiddenTitlebarSeparator(window.winId()));
+
+        chrome.toggleNativeFullscreen(&window);
+        QTRY_COMPARE(window.visibility(), QWindow::Windowed);
+        QTRY_VERIFY(chrome.hasLeadingToolbarCluster(&window));
+        QTRY_VERIFY(chrome.leadingToolbarClusterUsesDirectTitlebarHost(&window));
+        QTRY_VERIFY(chrome.leadingToolbarClusterCapturesHitTest(&window));
+        QTRY_VERIFY(chrome.hasToolbarChrome(window.winId()));
     }
 
     void destroyedWindowFallbackDetachesNativeChromeArtifactsByStoredNativeId() {

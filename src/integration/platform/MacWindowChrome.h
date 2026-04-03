@@ -2,7 +2,7 @@
 
 #include <functional>
 
-#include <QRectF>
+#include <QRect>
 #include <QWindow>
 
 struct WindowChromeMetrics {
@@ -24,25 +24,25 @@ struct TrafficLightsGeometry {
     int clusterWidth = 0;
 };
 
+struct NativeNavigationState {
+    bool valid = false;
+    bool backEnabled = false;
+    bool forwardEnabled = false;
+};
+
 class MacWindowChrome final {
 public:
     WindowChromeMetrics attach(QWindow* window,
                                std::function<void()> sidebarToggleHandler = {},
                                std::function<void()> backHandler = {},
                                std::function<void()> forwardHandler = {});
+    void updateNativeToolbarState(QWindow* window, bool backEnabled, bool forwardEnabled);
     void detach(QWindow* window);
     void detach(WId nativeId);
     bool beginSystemDrag(QWindow* window);
     bool toggleNativeFullscreen(QWindow* window);
     TrafficLightsGeometry trafficLightsGeometry(QWindow* window) const;
-    void setTitleBarControlRects(const QRectF& sidebarToggleRect,
-                                 const QRectF& backRect,
-                                 const QRectF& forwardRect);
     int titleBarDragRegionStartXForMetrics(const WindowChromeMetrics& metrics) const;
-    int titleBarDragRegionStartXForLayout(const WindowChromeMetrics& metrics,
-                                          const QRectF& sidebarToggleRect,
-                                          const QRectF& backRect,
-                                          const QRectF& forwardRect) const;
     int currentTitleBarDragRegionStartX(QWindow* window) const;
     bool hasTitleBarDragRegion(QWindow* window) const;
     bool hasTitleBarDragRegion(WId nativeId) const;
@@ -52,9 +52,10 @@ public:
     bool hasTitleBarDragMonitor(QWindow* window) const;
     bool hasTitleBarDragMonitor(WId nativeId) const;
     bool hasToolbarChrome(WId nativeId) const;
-
-private:
-    QRectF sidebarToggleRect_;
-    QRectF backRect_;
-    QRectF forwardRect_;
+    bool hasLeadingToolbarCluster(QWindow* window) const;
+    QRect leadingToolbarClusterFrame(QWindow* window) const;
+    bool leadingToolbarClusterCapturesHitTest(QWindow* window) const;
+    bool leadingToolbarClusterUsesDirectTitlebarHost(QWindow* window) const;
+    NativeNavigationState navigationEnabledState(QWindow* window) const;
+    bool hasHiddenTitlebarSeparator(WId nativeId) const;
 };

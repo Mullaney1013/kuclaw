@@ -69,13 +69,15 @@ WindowChromeViewModel::WindowChromeViewModel(QObject* parent,
                                              AttachFunction attachFunction,
                                              DragFunction dragFunction,
                                              ToggleFullscreenFunction toggleFullscreenFunction,
-                                             DetachFunction detachFunction)
+                                             DetachFunction detachFunction,
+                                             UpdateToolbarStateFunction updateToolbarStateFunction)
     : QObject(parent),
       attachFunction_(std::move(attachFunction)),
       dragFunction_(dragFunction ? std::move(dragFunction) : defaultBeginSystemDrag),
       toggleFullscreenFunction_(toggleFullscreenFunction ? std::move(toggleFullscreenFunction)
                                                          : defaultToggleNativeFullscreen),
-      detachFunction_(detachFunction ? std::move(detachFunction) : defaultDetachNativeChrome) {
+      detachFunction_(detachFunction ? std::move(detachFunction) : defaultDetachNativeChrome),
+      updateToolbarStateFunction_(updateToolbarStateFunction) {
     retryTimer_.setSingleShot(true);
     connect(&retryTimer_, &QTimer::timeout, this, &WindowChromeViewModel::tryAttach);
 }
@@ -125,43 +127,20 @@ bool WindowChromeViewModel::toggleNativeFullscreen() {
                                      : chrome_.toggleNativeFullscreen(trackedWindow_);
 }
 
-void WindowChromeViewModel::updateTitleBarControlRects(qreal sidebarToggleX,
-                                                       qreal sidebarToggleY,
-                                                       qreal sidebarToggleWidth,
-                                                       qreal sidebarToggleHeight,
-                                                       qreal backX,
-                                                       qreal backY,
-                                                       qreal backWidth,
-                                                       qreal backHeight,
-                                                       qreal forwardX,
-                                                       qreal forwardY,
-                                                       qreal forwardWidth,
-                                                       qreal forwardHeight) {
-    chrome_.setTitleBarControlRects(QRectF(sidebarToggleX,
-                                           sidebarToggleY,
-                                           sidebarToggleWidth,
-                                           sidebarToggleHeight),
-                                    QRectF(backX, backY, backWidth, backHeight),
-                                    QRectF(forwardX, forwardY, forwardWidth, forwardHeight));
+void WindowChromeViewModel::updateNativeToolbarState(bool backEnabled, bool forwardEnabled) {
+    nativeBackEnabled_ = backEnabled;
+    nativeForwardEnabled_ = forwardEnabled;
 
     if (trackedWindow_ == nullptr || !ownsNativeChromeAttachment_) {
         return;
     }
 
-    const WindowChromeMetrics refreshedMetrics =
-        chrome_.attach(trackedWindow_,
-                       [this]() { notifySidebarToggleRequested(); },
-                       [this]() { notifyBackRequested(); },
-                       [this]() { notifyForwardRequested(); });
-    nativeChromeAttached_ = refreshedMetrics.usesNativeTrafficLights;
-    ownsNativeChromeAttachment_ = refreshedMetrics.usesNativeTrafficLights;
-    nativeChromeDetachWindow_ = refreshedMetrics.usesNativeTrafficLights ? trackedWindow_.data() : nullptr;
-    nativeChromeDetachId_ =
-        refreshedMetrics.usesNativeTrafficLights && trackedWindow_ != nullptr
-            && trackedWindow_->handle() != nullptr
-            ? trackedWindow_->winId()
-            : 0;
-    setMetrics(refreshedMetrics);
+    if (updateToolbarStateFunction_) {
+        updateToolbarStateFunction_(trackedWindow_, nativeBackEnabled_, nativeForwardEnabled_);
+        return;
+    }
+
+    chrome_.updateNativeToolbarState(trackedWindow_, nativeBackEnabled_, nativeForwardEnabled_);
 }
 
 void WindowChromeViewModel::attachToWindow(QWindow* window) {
@@ -260,6 +239,14 @@ void WindowChromeViewModel::tryAttach() {
     setMetrics(metrics);
 
     if (metrics.usesNativeTrafficLights) {
+        if (updateToolbarStateFunction_) {
+            updateToolbarStateFunction_(trackedWindow_, nativeBackEnabled_, nativeForwardEnabled_);
+        } else {
+            chrome_.updateNativeToolbarState(trackedWindow_, nativeBackEnabled_, nativeForwardEnabled_);
+        }
+    }
+
+    if (metrics.usesNativeTrafficLights) {
         resetRetryState();
         return;
     }
@@ -309,7 +296,6 @@ void WindowChromeViewModel::clearTrackedWindow(QWindow* detachWindow, bool allow
         trackedWindow_->removeEventFilter(this);
         disconnect(trackedWindow_, nullptr, this, nullptr);
     }
-    chrome_.setTitleBarControlRects(QRectF(), QRectF(), QRectF());
     resetRetryState();
     nativeChromeAttached_ = false;
     ownsNativeChromeAttachment_ = false;

@@ -592,6 +592,37 @@ private slots:
         QCOMPARE(toggleCount, 1);
     }
 
+    void updateNativeToolbarStateUsesInjectedProviderForTrackedWindow() {
+        int updateCount = 0;
+        bool lastBackEnabled = false;
+        bool lastForwardEnabled = false;
+        QWindow window;
+        WindowChromeViewModel viewModel(nullptr,
+                                        fakeMetricsProvider,
+                                        {},
+                                        {},
+                                        {},
+                                        [&updateCount, &window, &lastBackEnabled,
+                                         &lastForwardEnabled](QWindow* trackedWindow,
+                                                              bool backEnabled,
+                                                              bool forwardEnabled) {
+                                            ++updateCount;
+                                            QCOMPARE(trackedWindow, &window);
+                                            lastBackEnabled = backEnabled;
+                                            lastForwardEnabled = forwardEnabled;
+                                        });
+
+        viewModel.attach(&window);
+        QCOMPARE(updateCount, 1);
+        QCOMPARE(lastBackEnabled, false);
+        QCOMPARE(lastForwardEnabled, false);
+        viewModel.updateNativeToolbarState(true, false);
+
+        QCOMPARE(updateCount, 2);
+        QCOMPARE(lastBackEnabled, true);
+        QCOMPARE(lastForwardEnabled, false);
+    }
+
 #ifdef Q_OS_MACOS
     void macWindowChromeDerivesDragRegionStartFromMeasuredSafeWidth() {
         MacWindowChrome chrome;
@@ -601,7 +632,7 @@ private slots:
         const int widerStartX = chrome.titleBarDragRegionStartXForMetrics(
             WindowChromeMetrics{ true, 110, 32 });
 
-        QCOMPARE(baselineStartX, 192);
+        QCOMPARE(baselineStartX, 180);
         QVERIFY(widerStartX > baselineStartX);
     }
 
@@ -611,19 +642,7 @@ private slots:
         const int clampedStartX =
             chrome.titleBarDragRegionStartXForMetrics(WindowChromeMetrics{ true, 480, 32 });
 
-        QCOMPARE(clampedStartX, 210);
-    }
-
-    void macWindowChromeDerivesDragRegionStartFromRealTitleBarControlRects() {
-        MacWindowChrome chrome;
-
-        const int layoutDrivenStartX = chrome.titleBarDragRegionStartXForLayout(
-            WindowChromeMetrics{ true, 78, 32 },
-            QRectF(90.0, 97.0, 20.0, 16.0),
-            QRectF(130.0, 97.0, 12.0, 14.0),
-            QRectF(146.0, 97.0, 12.0, 14.0));
-
-        QCOMPARE(layoutDrivenStartX, 178);
+        QCOMPARE(clampedStartX, 198);
     }
 
     void macWindowChromeReturnsUsableMetricsForNativeWindow() {
