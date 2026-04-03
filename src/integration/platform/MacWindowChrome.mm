@@ -26,7 +26,6 @@ typedef NS_ENUM(NSInteger, KuclawLeadingClusterHostMode) {
     KuclawLeadingClusterHostModeNone = 0,
     KuclawLeadingClusterHostModeToolbarItem,
     KuclawLeadingClusterHostModeDirectTitlebarHost,
-    KuclawLeadingClusterHostModeTitlebarAccessory,
 };
 
 static NSView* leadingClusterHostViewForWindow(NSWindow* nsWindow) {
@@ -78,7 +77,6 @@ static NSRect trafficLightsClusterFrameInView(NSWindow* nsWindow, NSView* target
 @property(nonatomic, weak) NSWindow* window;
 @property(nonatomic, strong) NSToolbar* toolbar;
 @property(nonatomic, strong) NSToolbarItem* leadingClusterItem;
-@property(nonatomic, strong) NSTitlebarAccessoryViewController* leadingAccessoryController;
 @property(nonatomic, strong) NSStackView* leadingClusterView;
 @property(nonatomic, strong) NSButton* sidebarButton;
 @property(nonatomic, strong) NSSegmentedControl* navigationControl;
@@ -96,7 +94,6 @@ static NSRect trafficLightsClusterFrameInView(NSWindow* nsWindow, NSView* target
 - (NSRect)leadingClusterFrameInWindowCoordinates;
 - (BOOL)leadingClusterUsesDirectTitlebarHost;
 - (BOOL)leadingClusterUsesToolbarItem;
-- (BOOL)leadingClusterUsesTitlebarAccessory;
 - (void)installForCurrentWindowState;
 - (void)detachFromWindow;
 @end
@@ -218,17 +215,6 @@ static NSRect trafficLightsClusterFrameInView(NSWindow* nsWindow, NSView* target
     return item;
 }
 
-- (NSTitlebarAccessoryViewController*)makeLeadingAccessoryController {
-    NSTitlebarAccessoryViewController* accessory = [[NSTitlebarAccessoryViewController alloc] init];
-    accessory.layoutAttribute = NSLayoutAttributeLeft;
-    accessory.view = self.leadingClusterView;
-    accessory.view.frame = NSMakeRect(0.0,
-                                      0.0,
-                                      self.leadingClusterView.fittingSize.width,
-                                      self.leadingClusterView.fittingSize.height);
-    return accessory;
-}
-
 - (instancetype)initWithWindow:(NSWindow*)window {
     self = [super init];
     if (self != nil) {
@@ -248,7 +234,6 @@ static NSRect trafficLightsClusterFrameInView(NSWindow* nsWindow, NSView* target
                                         navigationControl:self.navigationControl];
         self.leadingClusterView.hidden = NO;
         self.leadingClusterItem = [self makeLeadingClusterItem];
-        self.leadingAccessoryController = [self makeLeadingAccessoryController];
         self.hostMode = KuclawLeadingClusterHostModeNone;
     }
 
@@ -325,26 +310,7 @@ willBeInsertedIntoToolbar:(BOOL)flag {
     return self.hostMode == KuclawLeadingClusterHostModeToolbarItem;
 }
 
-- (BOOL)leadingClusterUsesTitlebarAccessory {
-    return self.hostMode == KuclawLeadingClusterHostModeTitlebarAccessory;
-}
-
-- (void)removeAccessoryIfNeeded {
-    if (self.window == nil || self.leadingAccessoryController == nil) {
-        return;
-    }
-
-    const NSUInteger accessoryIndex =
-        [self.window.titlebarAccessoryViewControllers indexOfObjectIdenticalTo:self.leadingAccessoryController];
-    if (accessoryIndex != NSNotFound) {
-        [self.window removeTitlebarAccessoryViewControllerAtIndex:accessoryIndex];
-    }
-}
-
 - (void)installAsToolbarItem {
-    [self removeAccessoryIfNeeded];
-
-    self.leadingAccessoryController.view = nil;
     if (self.hostMode != KuclawLeadingClusterHostModeToolbarItem) {
         [self.leadingClusterView removeFromSuperview];
     }
@@ -361,13 +327,10 @@ willBeInsertedIntoToolbar:(BOOL)flag {
 }
 
 - (void)installAsDirectTitlebarHost {
-    [self removeAccessoryIfNeeded];
-
     if (self.window.toolbar == self.toolbar) {
         self.window.toolbar = nil;
     }
 
-    self.leadingAccessoryController.view = nil;
     self.leadingClusterItem.view = nil;
 
     NSView* hostView = leadingClusterHostViewForWindow(self.window);
@@ -399,25 +362,6 @@ willBeInsertedIntoToolbar:(BOOL)flag {
     self.hostMode = KuclawLeadingClusterHostModeDirectTitlebarHost;
 }
 
-- (void)installAsTitlebarAccessory {
-    if (self.window.toolbar == self.toolbar) {
-        self.window.toolbar = nil;
-    }
-
-    self.leadingClusterItem.view = nil;
-
-    if (self.leadingAccessoryController.view != self.leadingClusterView) {
-        self.leadingAccessoryController.view = self.leadingClusterView;
-    }
-
-    if ([self.window.titlebarAccessoryViewControllers
-            indexOfObjectIdenticalTo:self.leadingAccessoryController] == NSNotFound) {
-        [self.window addTitlebarAccessoryViewController:self.leadingAccessoryController];
-    }
-
-    self.hostMode = KuclawLeadingClusterHostModeTitlebarAccessory;
-}
-
 - (void)installForCurrentWindowState {
     if (self.window == nil) {
         return;
@@ -438,13 +382,10 @@ willBeInsertedIntoToolbar:(BOOL)flag {
         return;
     }
 
-    [self removeAccessoryIfNeeded];
-
     if (self.window.toolbar == self.toolbar) {
         self.window.toolbar = nil;
     }
 
-    self.leadingAccessoryController.view = nil;
     self.leadingClusterItem.view = nil;
     [self.leadingClusterView removeFromSuperview];
     self.hostMode = KuclawLeadingClusterHostModeNone;
@@ -1596,30 +1537,6 @@ bool MacWindowChrome::leadingToolbarClusterUsesToolbarItem(QWindow* window) cons
 
     KuclawChromeToolbarController* controller = toolbarControllerForWindow(nativeView.window);
     return controller != nil && [controller leadingClusterUsesToolbarItem];
-#else
-    Q_UNUSED(window);
-    return false;
-#endif
-}
-
-bool MacWindowChrome::leadingToolbarClusterUsesTitlebarAccessory(QWindow* window) const {
-#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
-    if (window == nullptr || !runningOnCocoaPlatform()) {
-        return false;
-    }
-
-    const WId nativeId = window->winId();
-    if (nativeId == 0) {
-        return false;
-    }
-
-    auto* nativeView = (__bridge NSView*)(reinterpret_cast<void*>(nativeId));
-    if (nativeView == nil || nativeView.window == nil) {
-        return false;
-    }
-
-    KuclawChromeToolbarController* controller = toolbarControllerForWindow(nativeView.window);
-    return controller != nil && [controller leadingClusterUsesTitlebarAccessory];
 #else
     Q_UNUSED(window);
     return false;
