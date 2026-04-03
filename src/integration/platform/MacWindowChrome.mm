@@ -633,10 +633,15 @@ static CGFloat dragRegionStartXForMetrics(const WindowChromeMetrics& metrics) {
 static NSRect installedLeadingToolbarClusterFrameForWindow(NSWindow* nsWindow) {
     KuclawChromeToolbarController* controller = toolbarControllerForWindow(nsWindow);
     if (controller != nil) {
-        if (![controller leadingClusterUsesToolbarItem]
-            && ![controller leadingClusterUsesTitlebarAccessory]) {
+        if (controller.hostMode == KuclawLeadingClusterHostModeNone) {
             return NSZeroRect;
         }
+
+        if (controller.leadingClusterView == nil || controller.leadingClusterView.superview == nil
+            || controller.leadingClusterView.hidden) {
+            return NSZeroRect;
+        }
+
         const NSRect frame = [controller leadingClusterFrameInWindowCoordinates];
         if (!NSIsEmptyRect(frame)) {
             return frame;
