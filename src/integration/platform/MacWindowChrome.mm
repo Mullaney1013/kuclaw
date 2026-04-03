@@ -18,60 +18,13 @@
 @end
 
 static const CGFloat kLeadingToolbarClusterWindowedGap = 10.0;
-static const CGFloat kLeadingToolbarClusterFullscreenGap = 0.0;
 static NSToolbarItemIdentifier const kLeadingClusterToolbarItemIdentifier =
     @"com.mullaney1013.kuclaw.leadingCluster";
 
 typedef NS_ENUM(NSInteger, KuclawLeadingClusterHostMode) {
     KuclawLeadingClusterHostModeNone = 0,
     KuclawLeadingClusterHostModeToolbarItem,
-    KuclawLeadingClusterHostModeDirectTitlebarHost,
 };
-
-static NSView* leadingClusterHostViewForWindow(NSWindow* nsWindow) {
-    if (nsWindow == nil) {
-        return nil;
-    }
-
-    const bool fullScreen =
-        (nsWindow.styleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen;
-    if (fullScreen && nsWindow.contentView != nil) {
-        return nsWindow.contentView;
-    }
-
-    NSView* titleBarHost = nil;
-    NSButton* closeButton = [nsWindow standardWindowButton:NSWindowCloseButton];
-    NSView* titleBarView = closeButton.superview;
-    if (titleBarView != nil && titleBarView.superview != nil) {
-        titleBarHost = titleBarView.superview;
-    } else {
-        titleBarHost = titleBarView;
-    }
-
-    if (titleBarHost != nil) {
-        return titleBarHost;
-    }
-
-    return nsWindow.contentView;
-}
-
-static NSRect trafficLightsClusterFrameInView(NSWindow* nsWindow, NSView* targetView) {
-    if (nsWindow == nil || targetView == nil) {
-        return NSZeroRect;
-    }
-
-    NSButton* closeButton = [nsWindow standardWindowButton:NSWindowCloseButton];
-    NSButton* minimizeButton = [nsWindow standardWindowButton:NSWindowMiniaturizeButton];
-    NSButton* zoomButton = [nsWindow standardWindowButton:NSWindowZoomButton];
-    if (closeButton == nil || minimizeButton == nil || zoomButton == nil) {
-        return NSZeroRect;
-    }
-
-    const NSRect closeFrame = [closeButton convertRect:closeButton.bounds toView:targetView];
-    const NSRect minimizeFrame = [minimizeButton convertRect:minimizeButton.bounds toView:targetView];
-    const NSRect zoomFrame = [zoomButton convertRect:zoomButton.bounds toView:targetView];
-    return NSUnionRect(NSUnionRect(closeFrame, minimizeFrame), zoomFrame);
-}
 
 @interface KuclawChromeToolbarController : NSObject <NSToolbarDelegate>
 @property(nonatomic, weak) NSWindow* window;
@@ -92,7 +45,6 @@ static NSRect trafficLightsClusterFrameInView(NSWindow* nsWindow, NSView* target
                             forward:(BOOL)forwardEnabled;
 - (NativeNavigationState)navigationEnabledState;
 - (NSRect)leadingClusterFrameInWindowCoordinates;
-- (BOOL)leadingClusterUsesDirectTitlebarHost;
 - (BOOL)leadingClusterUsesToolbarItem;
 - (void)installForCurrentWindowState;
 - (void)detachFromWindow;
@@ -302,10 +254,6 @@ willBeInsertedIntoToolbar:(BOOL)flag {
     return [self.leadingClusterView convertRect:self.leadingClusterView.bounds toView:nil];
 }
 
-- (BOOL)leadingClusterUsesDirectTitlebarHost {
-    return self.hostMode == KuclawLeadingClusterHostModeDirectTitlebarHost;
-}
-
 - (BOOL)leadingClusterUsesToolbarItem {
     return self.hostMode == KuclawLeadingClusterHostModeToolbarItem;
 }
@@ -326,51 +274,8 @@ willBeInsertedIntoToolbar:(BOOL)flag {
     self.hostMode = KuclawLeadingClusterHostModeToolbarItem;
 }
 
-- (void)installAsDirectTitlebarHost {
-    if (self.window.toolbar == self.toolbar) {
-        self.window.toolbar = nil;
-    }
-
-    self.leadingClusterItem.view = nil;
-
-    NSView* hostView = leadingClusterHostViewForWindow(self.window);
-    if (hostView == nil) {
-        self.hostMode = KuclawLeadingClusterHostModeNone;
-        return;
-    }
-
-    if (self.leadingClusterView.superview != hostView) {
-        [self.leadingClusterView removeFromSuperview];
-        [hostView addSubview:self.leadingClusterView];
-    }
-
-    [hostView layoutSubtreeIfNeeded];
-
-    const NSRect trafficLightsFrame = trafficLightsClusterFrameInView(self.window, hostView);
-    const NSSize fittingSize = self.leadingClusterView.fittingSize;
-    const CGFloat clusterX =
-        NSIsEmptyRect(trafficLightsFrame) ? 78.0 : NSMaxX(trafficLightsFrame) + kLeadingToolbarClusterFullscreenGap;
-    const CGFloat clusterY =
-        NSIsEmptyRect(trafficLightsFrame)
-            ? qMax<CGFloat>(0.0, NSHeight(hostView.bounds) - fittingSize.height - 8.0)
-            : NSMidY(trafficLightsFrame) - (fittingSize.height / 2.0);
-    self.leadingClusterView.frame = NSMakeRect(clusterX,
-                                               qMax<CGFloat>(0.0, clusterY),
-                                               fittingSize.width,
-                                               fittingSize.height);
-    self.leadingClusterView.autoresizingMask = NSViewMaxXMargin | NSViewMinYMargin;
-    self.hostMode = KuclawLeadingClusterHostModeDirectTitlebarHost;
-}
-
 - (void)installForCurrentWindowState {
     if (self.window == nil) {
-        return;
-    }
-
-    const bool fullScreen =
-        (self.window.styleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen;
-    if (fullScreen) {
-        [self installAsDirectTitlebarHost];
         return;
     }
 
@@ -1489,30 +1394,6 @@ bool MacWindowChrome::leadingToolbarClusterCapturesHitTest(QWindow* window) cons
 
     return [hitView isDescendantOf:controller.leadingClusterView]
            || hitView == controller.leadingClusterView;
-#else
-    Q_UNUSED(window);
-    return false;
-#endif
-}
-
-bool MacWindowChrome::leadingToolbarClusterUsesDirectTitlebarHost(QWindow* window) const {
-#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
-    if (window == nullptr || !runningOnCocoaPlatform()) {
-        return false;
-    }
-
-    const WId nativeId = window->winId();
-    if (nativeId == 0) {
-        return false;
-    }
-
-    auto* nativeView = (__bridge NSView*)(reinterpret_cast<void*>(nativeId));
-    if (nativeView == nil || nativeView.window == nil) {
-        return false;
-    }
-
-    KuclawChromeToolbarController* controller = toolbarControllerForWindow(nativeView.window);
-    return controller != nil && [controller leadingClusterUsesDirectTitlebarHost];
 #else
     Q_UNUSED(window);
     return false;
