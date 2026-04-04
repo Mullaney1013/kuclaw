@@ -40,7 +40,10 @@ public:
     QSize sourceRasterPixelSizeForTesting() const;
     bool hasAttachedStatusItemScreenForTesting() const;
     double attachedStatusItemScreenScaleForTesting() const;
+    bool hasStatusItemButtonForTesting() const;
+    bool hasMenuObjectForTesting() const;
     bool isMenuAttachedForTesting() const;
+    bool usesDirectActionHandlerForTesting() const;
     void simulateRightClickForTesting();
     void simulateMenuClosedForTesting();
     void simulateScreenConfigurationChangeForTesting();

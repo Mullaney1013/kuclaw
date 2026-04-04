@@ -403,7 +403,9 @@ void applyStatusItemButtonImage(NSStatusBarButton* button, NSImage* image) {
     }
 
     self.menu.delegate = self;
-    self.statusItem.menu = self.menu;
+    if (self.statusItem.menu != self.menu) {
+        self.statusItem.menu = self.menu;
+    }
 
     if (self.statusItem.button != nil) {
         [self.statusItem.button performClick:nil];
@@ -411,9 +413,8 @@ void applyStatusItemButtonImage(NSStatusBarButton* button, NSImage* image) {
 }
 
 - (void)detachPresentedMenuIfNeeded {
-    if (self.statusItem != nil && self.statusItem.menu == self.menu) {
-        self.statusItem.menu = nil;
-    }
+    // The menu remains attached permanently so primary clicks continue to
+    // route through AppKit's standard status-item menu behavior.
 }
 
 - (void)menuDidClose:(NSMenu*)menu {
@@ -558,15 +559,16 @@ public:
 
         statusItem_ = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
         target_.statusItem = statusItem_;
+        target_.menu.delegate = target_;
+        statusItem_.menu = target_.menu;
         installScreenChangeObserver();
         rerenderImageForCurrentScale();
 
         if (NSStatusBarButton* button = statusItem_.button) {
-            button.target = target_;
-            button.action = @selector(handleStatusItemAction:);
             button.toolTip = toolTip_.isEmpty() ? nil : qtToNSString(toolTip_);
             applyStatusItemButtonImage(button, image_);
-            [button sendActionOn:NSEventMaskLeftMouseUp | NSEventMaskRightMouseUp | NSEventMaskOtherMouseUp];
+            button.target = nil;
+            button.action = nullptr;
         }
 
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -580,6 +582,9 @@ public:
         }
 
         removeScreenChangeObserver();
+        if (statusItem_.menu == target_.menu) {
+            statusItem_.menu = nil;
+        }
         [[NSStatusBar systemStatusBar] removeStatusItem:statusItem_];
         target_.statusItem = nil;
         statusItem_ = nil;
@@ -655,8 +660,22 @@ public:
                && statusItem_.button.window.screen != nil;
     }
 
+    bool hasStatusItemButton() const {
+        return statusItem_ != nil && statusItem_.button != nil;
+    }
+
+    bool hasMenuObject() const {
+        return target_ != nil && target_.menu != nil;
+    }
+
     bool isMenuAttached() const {
-        return statusItem_ != nil && target_ != nil && statusItem_.menu == target_.menu;
+        return statusItem_ != nil && target_ != nil && target_.menu != nil && statusItem_.menu != nil
+               && statusItem_.menu == target_.menu;
+    }
+
+    bool usesDirectActionHandler() const {
+        return statusItem_ != nil && statusItem_.button != nil
+               && (statusItem_.button.target != nil || statusItem_.button.action != nullptr);
     }
 
     double attachedStatusItemScreenScale() const {
@@ -811,8 +830,20 @@ double MacStatusItemBackend::attachedStatusItemScreenScaleForTesting() const {
     return impl_->attachedStatusItemScreenScale();
 }
 
+bool MacStatusItemBackend::hasStatusItemButtonForTesting() const {
+    return impl_->hasStatusItemButton();
+}
+
+bool MacStatusItemBackend::hasMenuObjectForTesting() const {
+    return impl_->hasMenuObject();
+}
+
 bool MacStatusItemBackend::isMenuAttachedForTesting() const {
     return impl_->isMenuAttached();
+}
+
+bool MacStatusItemBackend::usesDirectActionHandlerForTesting() const {
+    return impl_->usesDirectActionHandler();
 }
 
 void MacStatusItemBackend::simulateRightClickForTesting() {

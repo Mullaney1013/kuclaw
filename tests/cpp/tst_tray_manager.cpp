@@ -321,22 +321,27 @@ private slots:
 #endif
     }
 
-    void rightClickMenuUsesTemporaryMenuAttachment() {
+    void menuRemainsPermanentlyAttachedForPrimaryClickMenuBehavior() {
 #if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
         MacStatusItemBackend backend(MacStatusItemBackend::Callbacks{});
         backend.setTemplateImageFile(QStringLiteral(KUCLAW_MENU_BAR_ICON_FILE_PATH));
         backend.show();
 
-        QVERIFY2(!backend.isMenuAttachedForTesting(),
-                 "status item should not keep the menu permanently attached before interaction.");
-
-        backend.simulateRightClickForTesting();
+        QVERIFY2(backend.hasMenuObjectForTesting(),
+                 "native status-item backend should create a real NSMenu for primary-click menu behavior.");
+        QVERIFY2(backend.hasStatusItemButtonForTesting(),
+                 "native status-item backend should expose a real NSStatusBarButton when visible.");
         QVERIFY2(backend.isMenuAttachedForTesting(),
-                 "right click should attach the menu long enough for AppKit to present it.");
+                 "status item should keep the menu permanently attached so AppKit opens it on primary click.");
+        QVERIFY2(!backend.usesDirectActionHandlerForTesting(),
+                 "primary-click menu behavior should let AppKit open the attached menu directly instead of routing through a custom action handler.");
+
+        QVERIFY2(backend.isMenuAttachedForTesting(),
+                 "status item menu should stay attached while the item is visible.");
 
         backend.simulateMenuClosedForTesting();
-        QVERIFY2(!backend.isMenuAttachedForTesting(),
-                 "menu should detach again after AppKit finishes presenting it.");
+        QVERIFY2(backend.isMenuAttachedForTesting(),
+                 "menu should remain attached after closing so the next primary click still opens it.");
 
         backend.hide();
 #else
