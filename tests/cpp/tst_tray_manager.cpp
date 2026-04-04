@@ -1,18 +1,164 @@
 #include "core/tray/TrayManager.h"
 
+#include <QDir>
 #include <QFileInfo>
 #include <QImage>
-#include <QtTest>
+#include <QPainter>
 #include <QSystemTrayIcon>
+#include <QTemporaryDir>
+#include <QtTest>
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
 #include "core/tray/MacStatusItemBackend.h"
 #endif
 
+namespace {
+
+QRect alphaBounds(const QImage& image) {
+    int minX = image.width();
+    int minY = image.height();
+    int maxX = -1;
+    int maxY = -1;
+
+    for (int y = 0; y < image.height(); ++y) {
+        for (int x = 0; x < image.width(); ++x) {
+            if (image.pixelColor(x, y).alpha() == 0) {
+                continue;
+            }
+
+            minX = std::min(minX, x);
+            minY = std::min(minY, y);
+            maxX = std::max(maxX, x);
+            maxY = std::max(maxY, y);
+        }
+    }
+
+    if (maxX < minX || maxY < minY) {
+        return {};
+    }
+
+    return QRect(QPoint(minX, minY), QPoint(maxX, maxY));
+}
+
+QImage createSharpTrayGlyphSource() {
+    QImage image(QSize(64, 64), QImage::Format_RGBA8888);
+    image.fill(Qt::transparent);
+
+    QPainter painter(&image);
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.setBrush(Qt::black);
+    painter.setPen(Qt::NoPen);
+
+    constexpr int arm = 8;
+    constexpr int depth = 14;
+    painter.drawRect(4, 4, depth, arm);
+    painter.drawRect(4, 4, arm, depth);
+    painter.drawRect(64 - 4 - depth, 4, depth, arm);
+    painter.drawRect(64 - 4 - arm, 4, arm, depth);
+    painter.drawRect(4, 64 - 4 - arm, depth, arm);
+    painter.drawRect(4, 64 - 4 - depth, arm, depth);
+    painter.drawRect(64 - 4 - depth, 64 - 4 - arm, depth, arm);
+    painter.drawRect(64 - 4 - arm, 64 - 4 - depth, arm, depth);
+
+    QPen pen(Qt::black, 8, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin);
+    painter.setPen(pen);
+    painter.drawPolyline(QPolygonF{
+        QPointF(22, 22),
+        QPointF(30, 42),
+        QPointF(38, 28),
+        QPointF(46, 42),
+        QPointF(54, 22),
+    });
+
+    painter.end();
+    return image;
+}
+
+QImage expectedFastFittedGlyph(const QImage& sourceImage, const QSize& pixelCanvasSize, double scaleFactor) {
+    const QRect sourceBounds = alphaBounds(sourceImage);
+    if (!sourceBounds.isValid()) {
+        return {};
+    }
+
+    const int insetPixels = std::max(0, qRound(scaleFactor));
+    const int targetSide = std::max(1, std::min(pixelCanvasSize.width(), pixelCanvasSize.height()) - (insetPixels * 2));
+    const QRect targetRect((pixelCanvasSize.width() - targetSide) / 2,
+                           (pixelCanvasSize.height() - targetSide) / 2,
+                           targetSide,
+                           targetSide);
+
+    QImage output(pixelCanvasSize, QImage::Format_RGBA8888);
+    output.fill(Qt::transparent);
+
+    QPainter painter(&output);
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, false);
+    painter.drawImage(targetRect, sourceImage, sourceBounds);
+    painter.end();
+
+    for (int y = 0; y < output.height(); ++y) {
+        for (int x = 0; x < output.width(); ++x) {
+            const int alpha = output.pixelColor(x, y).alpha();
+            output.setPixelColor(x, y, alpha >= 24 ? QColor(0, 0, 0, 255) : QColor(0, 0, 0, 0));
+        }
+    }
+
+    return output;
+}
+
+int differingAlphaPixels(const QImage& lhs, const QImage& rhs) {
+    if (lhs.size() != rhs.size()) {
+        return std::numeric_limits<int>::max();
+    }
+
+    int differingPixels = 0;
+    for (int y = 0; y < lhs.height(); ++y) {
+        for (int x = 0; x < lhs.width(); ++x) {
+            const bool lhsVisible = lhs.pixelColor(x, y).alpha() > 0;
+            const bool rhsVisible = rhs.pixelColor(x, y).alpha() > 0;
+            if (lhsVisible != rhsVisible) {
+                ++differingPixels;
+            }
+        }
+    }
+    return differingPixels;
+}
+
+}  // namespace
+
 class TrayManagerTest : public QObject {
     Q_OBJECT
 
 private slots:
+    void menuBarTemplateImageAvoidsSoftenedSecondResample() {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+        QTemporaryDir tempDir;
+        QVERIFY(tempDir.isValid());
+
+        const QImage sourceImage = createSharpTrayGlyphSource();
+        const QString filePath = QDir(tempDir.path()).filePath(QStringLiteral("tray-source.png"));
+        QVERIFY2(sourceImage.save(filePath), "temporary tray source image should save successfully.");
+
+        MacStatusItemBackend backend(MacStatusItemBackend::Callbacks{});
+        backend.setTemplateImageFile(filePath);
+
+        const QImage actual = backend.rasterizedImageForTesting().convertToFormat(QImage::Format_RGBA8888);
+        QVERIFY2(!actual.isNull(), "temporary tray source should rasterize through the native menu-bar path.");
+
+        const QImage expected = expectedFastFittedGlyph(sourceImage,
+                                                        backend.imagePixelSizeForTesting(),
+                                                        backend.imageScaleFactorForTesting());
+        QVERIFY2(!expected.isNull(), "expected fast-fitted tray glyph should be generated.");
+
+        const int differingPixels = differingAlphaPixels(actual, expected);
+        QVERIFY2(differingPixels <= 24,
+                 qPrintable(QStringLiteral("menu-bar glyph should stay close to a single fast fit without an extra softening pass; differing alpha pixels: %1")
+                                .arg(differingPixels)));
+#else
+        QSKIP("Native menu bar template rendering is only available on macOS.");
+#endif
+    }
+
     void menuBarIcnsRemainsLegibleAtMenuBarSize() {
         const QString iconPath = QStringLiteral(KUCLAW_MENU_BAR_ICON_FILE_PATH);
         QVERIFY2(QFileInfo::exists(iconPath),

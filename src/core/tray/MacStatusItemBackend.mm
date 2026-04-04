@@ -98,7 +98,7 @@ QImage rasterizeNSImage(NSImage* sourceImage, const QSize& pixelCanvasSize) {
                    fraction:1.0
              respectFlipped:YES
                       hints:@{
-                          NSImageHintInterpolation : @(NSImageInterpolationHigh),
+                          NSImageHintInterpolation : @(NSImageInterpolationNone),
                       }];
 
     [context flushGraphics];
@@ -187,8 +187,8 @@ QImage cropAndFitMenuBarGlyph(const QImage& sourceImage, const QSize& pixelCanva
     output.fill(Qt::transparent);
 
     QPainter painter(&output);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, false);
     painter.drawImage(targetRect, sourceImage, sourceBounds);
     painter.end();
 
