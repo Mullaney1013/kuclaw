@@ -154,7 +154,8 @@ QSize preferredSourceRasterSize(NSImage* sourceImage, const QSize& fallbackSize)
         return fallbackSize;
     }
 
-    const NSRect proposedRect = NSMakeRect(0.0, 0.0, 512.0, 512.0);
+    const NSRect proposedRect =
+        NSMakeRect(0.0, 0.0, fallbackSize.width(), fallbackSize.height());
     NSImageRep* rep = [sourceImage bestRepresentationForRect:proposedRect
                                                      context:nil
                                                        hints:nil];
@@ -268,7 +269,17 @@ NSImage* templateImageFromQImage(const QImage& image, const QSizeF& pointSize) {
     return nsImage;
 }
 
+QImage rasterizedMenuBarTemplateImageFromFile(const QString& filePath,
+                                              CGFloat scaleFactor,
+                                              QSize* sourceRasterPixelSize);
+
 QImage rasterizedMenuBarTemplateImageFromFile(const QString& filePath, CGFloat scaleFactor) {
+    return rasterizedMenuBarTemplateImageFromFile(filePath, scaleFactor, nullptr);
+}
+
+QImage rasterizedMenuBarTemplateImageFromFile(const QString& filePath,
+                                              CGFloat scaleFactor,
+                                              QSize* sourceRasterPixelSize) {
     const QFileInfo fileInfo(filePath);
     if (!fileInfo.exists() || !fileInfo.isFile()) {
         return {};
@@ -281,6 +292,9 @@ QImage rasterizedMenuBarTemplateImageFromFile(const QString& filePath, CGFloat s
 
     const QSize pixelCanvasSize = menuBarPixelCanvasSize(scaleFactor);
     const QSize sourceRasterSize = preferredSourceRasterSize(nsImage, pixelCanvasSize);
+    if (sourceRasterPixelSize != nullptr) {
+        *sourceRasterPixelSize = sourceRasterSize;
+    }
     const QImage sourceRaster = rasterizeNSImage(nsImage, sourceRasterSize);
     return menuBarTemplateGlyphFromImage(cropAndFitMenuBarGlyph(sourceRaster, pixelCanvasSize, scaleFactor));
 }
@@ -467,7 +481,11 @@ public:
     }
 
     void setTemplateImageFile(const QString& filePath) {
-        image_ = toTemplateImageFromFile(filePath);
+        sourceRasterPixelSize_ = {};
+        image_ = templateImageFromQImage(rasterizedMenuBarTemplateImageFromFile(filePath,
+                                                                                menuBarScreenScaleFactor(),
+                                                                                &sourceRasterPixelSize_),
+                                         QSizeF(kMenuBarIconPointSize, kMenuBarIconPointSize));
         if (statusItem_ != nil && statusItem_.button != nil) {
             applyStatusItemButtonImage(statusItem_.button, image_);
         }
@@ -557,11 +575,16 @@ public:
         return static_cast<double>(pixelSize.width()) / static_cast<double>(pointSize.width());
     }
 
+    QSize sourceRasterPixelSize() const {
+        return sourceRasterPixelSize_;
+    }
+
 private:
     Callbacks callbacks_;
     __strong KuclawStatusItemTarget* target_;
     __strong NSStatusItem* statusItem_ = nil;
     __strong NSImage* image_ = nil;
+    QSize sourceRasterPixelSize_;
     QString toolTip_;
 };
 
@@ -616,4 +639,8 @@ QSize MacStatusItemBackend::imagePointSizeForTesting() const {
 
 double MacStatusItemBackend::imageScaleFactorForTesting() const {
     return impl_->imageScaleFactor();
+}
+
+QSize MacStatusItemBackend::sourceRasterPixelSizeForTesting() const {
+    return impl_->sourceRasterPixelSize();
 }

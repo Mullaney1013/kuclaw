@@ -25,6 +25,7 @@ private slots:
         constexpr int iconSize = 22;
         const QSize pointSize = backend.imagePointSizeForTesting();
         const QSize pixelSize = backend.imagePixelSizeForTesting();
+        const QSize sourceRasterSize = backend.sourceRasterPixelSizeForTesting();
         const double scaleFactor = backend.imageScaleFactorForTesting();
         const QImage image = backend.rasterizedImageForTesting().convertToFormat(QImage::Format_RGBA8888);
         QVERIFY2(!image.isNull(), "icon.icns should rasterize into a 22px menu-bar template image.");
@@ -33,6 +34,19 @@ private slots:
         QVERIFY2(scaleFactor >= 1.0, "menu-bar template image should report a valid AppKit backing scale.");
         QVERIFY2(pixelSize.width() >= iconSize && pixelSize.height() >= iconSize,
                  "menu-bar template image should keep at least 1x backing pixels.");
+        QVERIFY2(sourceRasterSize.width() >= pixelSize.width() && sourceRasterSize.height() >= pixelSize.height(),
+                 qPrintable(QStringLiteral("menu-bar glyph source rep should be at least as large as the final raster; got %1x%2 for %3x%4")
+                                .arg(sourceRasterSize.width())
+                                .arg(sourceRasterSize.height())
+                                .arg(pixelSize.width())
+                                .arg(pixelSize.height())));
+        QVERIFY2(sourceRasterSize.width() <= pixelSize.width() * 3
+                     && sourceRasterSize.height() <= pixelSize.height() * 3,
+                 qPrintable(QStringLiteral("menu-bar glyph source rep should stay close to the target size instead of always downscaling from a huge rep; got %1x%2 for %3x%4")
+                                .arg(sourceRasterSize.width())
+                                .arg(sourceRasterSize.height())
+                                .arg(pixelSize.width())
+                                .arg(pixelSize.height())));
 #else
         QSKIP("Native menu bar template rendering is only available on macOS.");
 #endif

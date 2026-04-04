@@ -36,6 +36,7 @@ public:
     QSize imagePixelSizeForTesting() const;
     QSize imagePointSizeForTesting() const;
     double imageScaleFactorForTesting() const;
+    QSize sourceRasterPixelSizeForTesting() const;
 
 private:
     class Impl;
