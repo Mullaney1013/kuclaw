@@ -267,6 +267,29 @@ private slots:
         backend.hide();
 #endif
     }
+
+    void menuBarIconRerasterizesWhenScreenScaleChanges() {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+        MacStatusItemBackend::setScaleFactorOverrideForTesting(1.0);
+
+        MacStatusItemBackend backend(MacStatusItemBackend::Callbacks{});
+        backend.setTemplateImageFile(QStringLiteral(KUCLAW_MENU_BAR_ICON_FILE_PATH));
+        QCOMPARE(backend.renderedRasterPixelSizeForTesting(), QSize(22, 22));
+
+        MacStatusItemBackend::setScaleFactorOverrideForTesting(2.0);
+        backend.show();
+        QCOMPARE(backend.renderedRasterPixelSizeForTesting(), QSize(44, 44));
+
+        MacStatusItemBackend::setScaleFactorOverrideForTesting(3.0);
+        backend.simulateScreenConfigurationChangeForTesting();
+        QCOMPARE(backend.renderedRasterPixelSizeForTesting(), QSize(66, 66));
+
+        backend.hide();
+        MacStatusItemBackend::clearScaleFactorOverrideForTesting();
+#else
+        QSKIP("Native menu bar template rendering is only available on macOS.");
+#endif
+    }
 };
 
 QTEST_MAIN(TrayManagerTest)

@@ -36,7 +36,11 @@ public:
     QSize imagePixelSizeForTesting() const;
     QSize imagePointSizeForTesting() const;
     double imageScaleFactorForTesting() const;
+    QSize renderedRasterPixelSizeForTesting() const;
     QSize sourceRasterPixelSizeForTesting() const;
+    void simulateScreenConfigurationChangeForTesting();
+    static void setScaleFactorOverrideForTesting(double scaleFactor);
+    static void clearScaleFactorOverrideForTesting();
 
 private:
     class Impl;

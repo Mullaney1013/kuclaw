@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <optional>
 
 #include <QFileInfo>
 #include <QIcon>
@@ -46,8 +47,37 @@ NSString* qtToNSString(const QString& text) {
     return [NSString stringWithUTF8String:text.toUtf8().constData()];
 }
 
+std::optional<CGFloat>& menuBarScaleFactorOverrideStorage() {
+    static std::optional<CGFloat> sScaleFactorOverride;
+    return sScaleFactorOverride;
+}
+
 CGFloat menuBarScreenScaleFactor() {
+    if (menuBarScaleFactorOverrideStorage().has_value()) {
+        return std::max<CGFloat>(1.0, menuBarScaleFactorOverrideStorage().value());
+    }
+
     NSScreen* screen = NSScreen.mainScreen;
+    if (screen == nil && NSScreen.screens.count > 0) {
+        screen = NSScreen.screens.firstObject;
+    }
+
+    const CGFloat scale = screen != nil ? screen.backingScaleFactor : 2.0;
+    return std::max<CGFloat>(1.0, std::ceil(scale));
+}
+
+CGFloat menuBarScreenScaleFactor(NSStatusItem* statusItem) {
+    if (menuBarScaleFactorOverrideStorage().has_value()) {
+        return std::max<CGFloat>(1.0, menuBarScaleFactorOverrideStorage().value());
+    }
+
+    NSScreen* screen = nil;
+    if (statusItem != nil && statusItem.button != nil && statusItem.button.window != nil) {
+        screen = statusItem.button.window.screen;
+    }
+    if (screen == nil) {
+        screen = NSScreen.mainScreen;
+    }
     if (screen == nil && NSScreen.screens.count > 0) {
         screen = NSScreen.screens.firstObject;
     }
@@ -299,8 +329,7 @@ QImage rasterizedMenuBarTemplateImageFromFile(const QString& filePath,
     return menuBarTemplateGlyphFromImage(cropAndFitMenuBarGlyph(sourceRaster, pixelCanvasSize, scaleFactor));
 }
 
-NSImage* toTemplateImage(const QIcon& icon) {
-    const CGFloat scaleFactor = menuBarScreenScaleFactor();
+NSImage* toTemplateImage(const QIcon& icon, CGFloat scaleFactor) {
     const QSize pixelCanvasSize = menuBarPixelCanvasSize(scaleFactor);
     const QPixmap pixmap = icon.pixmap(pixelCanvasSize);
     if (pixmap.isNull()) {
@@ -311,8 +340,8 @@ NSImage* toTemplateImage(const QIcon& icon) {
         QSizeF(kMenuBarIconPointSize, kMenuBarIconPointSize));
 }
 
-NSImage* toTemplateImageFromFile(const QString& filePath) {
-    return templateImageFromQImage(rasterizedMenuBarTemplateImageFromFile(filePath, menuBarScreenScaleFactor()),
+NSImage* toTemplateImageFromFile(const QString& filePath, CGFloat scaleFactor) {
+    return templateImageFromQImage(rasterizedMenuBarTemplateImageFromFile(filePath, scaleFactor),
                                    QSizeF(kMenuBarIconPointSize, kMenuBarIconPointSize));
 }
 
@@ -417,6 +446,12 @@ void addMenuItem(NSMenu* menu,
 
 class MacStatusItemBackend::Impl {
 public:
+    enum class ImageSourceKind {
+        None,
+        Icon,
+        TemplateFile,
+    };
+
     explicit Impl(Callbacks callbacks)
         : callbacks_(std::move(callbacks)),
           target_([[KuclawStatusItemTarget alloc] init]) {
@@ -466,6 +501,10 @@ public:
         target_.menu = menu;
     }
 
+    ~Impl() {
+        hide();
+    }
+
     void setToolTip(const QString& toolTip) {
         toolTip_ = toolTip;
         if (statusItem_ != nil && statusItem_.button != nil) {
@@ -474,21 +513,17 @@ public:
     }
 
     void setIcon(const QIcon& icon) {
-        image_ = toTemplateImage(icon);
-        if (statusItem_ != nil && statusItem_.button != nil) {
-            applyStatusItemButtonImage(statusItem_.button, image_);
-        }
+        imageSourceKind_ = ImageSourceKind::Icon;
+        sourceIcon_ = icon;
+        templateImageFilePath_.clear();
+        rerenderImageForCurrentScale();
     }
 
     void setTemplateImageFile(const QString& filePath) {
-        sourceRasterPixelSize_ = {};
-        image_ = templateImageFromQImage(rasterizedMenuBarTemplateImageFromFile(filePath,
-                                                                                menuBarScreenScaleFactor(),
-                                                                                &sourceRasterPixelSize_),
-                                         QSizeF(kMenuBarIconPointSize, kMenuBarIconPointSize));
-        if (statusItem_ != nil && statusItem_.button != nil) {
-            applyStatusItemButtonImage(statusItem_.button, image_);
-        }
+        imageSourceKind_ = ImageSourceKind::TemplateFile;
+        templateImageFilePath_ = filePath;
+        sourceIcon_ = QIcon();
+        rerenderImageForCurrentScale();
     }
 
     void show() {
@@ -498,6 +533,8 @@ public:
 
         statusItem_ = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
         target_.statusItem = statusItem_;
+        installScreenChangeObserver();
+        rerenderImageForCurrentScale();
 
         if (NSStatusBarButton* button = statusItem_.button) {
             button.target = target_;
@@ -506,6 +543,10 @@ public:
             applyStatusItemButtonImage(button, image_);
             [button sendActionOn:NSEventMaskLeftMouseUp | NSEventMaskRightMouseUp | NSEventMaskOtherMouseUp];
         }
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            rerenderImageForCurrentScale();
+        });
     }
 
     void hide() {
@@ -513,6 +554,7 @@ public:
             return;
         }
 
+        removeScreenChangeObserver();
         [[NSStatusBar systemStatusBar] removeStatusItem:statusItem_];
         target_.statusItem = nil;
         statusItem_ = nil;
@@ -579,12 +621,74 @@ public:
         return sourceRasterPixelSize_;
     }
 
+    QSize renderedRasterPixelSize() const {
+        return renderedRasterPixelSize_;
+    }
+
+    void simulateScreenConfigurationChangeForTesting() {
+        rerenderImageForCurrentScale();
+    }
+
 private:
+    void installScreenChangeObserver() {
+        if (screenParametersObserver_ != nil) {
+            return;
+        }
+
+        screenParametersObserver_ =
+            [[NSNotificationCenter defaultCenter] addObserverForName:NSApplicationDidChangeScreenParametersNotification
+                                                              object:nil
+                                                               queue:nil
+                                                          usingBlock:^(__unused NSNotification* notification) {
+                                                              rerenderImageForCurrentScale();
+                                                          }];
+    }
+
+    void removeScreenChangeObserver() {
+        if (screenParametersObserver_ == nil) {
+            return;
+        }
+
+        [[NSNotificationCenter defaultCenter] removeObserver:screenParametersObserver_];
+        screenParametersObserver_ = nil;
+    }
+
+    void rerenderImageForCurrentScale() {
+        const CGFloat scaleFactor = menuBarScreenScaleFactor(statusItem_);
+        renderedRasterPixelSize_ = menuBarPixelCanvasSize(scaleFactor);
+        sourceRasterPixelSize_ = {};
+
+        switch (imageSourceKind_) {
+            case ImageSourceKind::Icon:
+                image_ = toTemplateImage(sourceIcon_, scaleFactor);
+                break;
+            case ImageSourceKind::TemplateFile:
+                image_ = templateImageFromQImage(rasterizedMenuBarTemplateImageFromFile(templateImageFilePath_,
+                                                                                        scaleFactor,
+                                                                                        &sourceRasterPixelSize_),
+                                                 QSizeF(kMenuBarIconPointSize, kMenuBarIconPointSize));
+                break;
+            case ImageSourceKind::None:
+                image_ = nil;
+                renderedRasterPixelSize_ = {};
+                break;
+        }
+
+        if (statusItem_ != nil && statusItem_.button != nil) {
+            applyStatusItemButtonImage(statusItem_.button, image_);
+        }
+    }
+
     Callbacks callbacks_;
     __strong KuclawStatusItemTarget* target_;
     __strong NSStatusItem* statusItem_ = nil;
     __strong NSImage* image_ = nil;
+    id screenParametersObserver_ = nil;
+    ImageSourceKind imageSourceKind_ = ImageSourceKind::None;
+    QIcon sourceIcon_;
+    QString templateImageFilePath_;
     QSize sourceRasterPixelSize_;
+    QSize renderedRasterPixelSize_;
     QString toolTip_;
 };
 
@@ -643,4 +747,20 @@ double MacStatusItemBackend::imageScaleFactorForTesting() const {
 
 QSize MacStatusItemBackend::sourceRasterPixelSizeForTesting() const {
     return impl_->sourceRasterPixelSize();
+}
+
+QSize MacStatusItemBackend::renderedRasterPixelSizeForTesting() const {
+    return impl_->renderedRasterPixelSize();
+}
+
+void MacStatusItemBackend::simulateScreenConfigurationChangeForTesting() {
+    impl_->simulateScreenConfigurationChangeForTesting();
+}
+
+void MacStatusItemBackend::setScaleFactorOverrideForTesting(double scaleFactor) {
+    menuBarScaleFactorOverrideStorage() = std::max<CGFloat>(1.0, static_cast<CGFloat>(scaleFactor));
+}
+
+void MacStatusItemBackend::clearScaleFactorOverrideForTesting() {
+    menuBarScaleFactorOverrideStorage().reset();
 }
