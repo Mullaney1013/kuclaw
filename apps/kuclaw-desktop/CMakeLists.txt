@@ -30,6 +30,8 @@ set(KUCLAW_DESKTOP_SOURCES
 if(APPLE)
     list(APPEND KUCLAW_DESKTOP_SOURCES
         ${CMAKE_SOURCE_DIR}/assets/icons/AppIcon.icns
+        ${CMAKE_SOURCE_DIR}/assets/icons/icon.icns
+        ${CMAKE_SOURCE_DIR}/src/core/tray/MacStatusItemBackend.mm
         ${CMAKE_SOURCE_DIR}/src/integration/platform/MacWindowChrome.mm
         ${CMAKE_SOURCE_DIR}/src/integration/platform/NativeScreenHelperMac.mm
     )
@@ -38,6 +40,11 @@ if(APPLE)
         PROPERTIES MACOSX_PACKAGE_LOCATION Resources
     )
     set_source_files_properties(
+        ${CMAKE_SOURCE_DIR}/assets/icons/icon.icns
+        PROPERTIES MACOSX_PACKAGE_LOCATION Resources/assets/icons
+    )
+    set_source_files_properties(
+        ${CMAKE_SOURCE_DIR}/src/core/tray/MacStatusItemBackend.mm
         ${CMAKE_SOURCE_DIR}/src/integration/platform/MacWindowChrome.mm
         ${CMAKE_SOURCE_DIR}/src/integration/platform/NativeScreenHelperMac.mm
         PROPERTIES COMPILE_OPTIONS "-fobjc-arc"
@@ -216,6 +223,7 @@ target_link_libraries(${KUCLAW_DESKTOP_TARGET}
         Qt6::Qml
         Qt6::Quick
         Qt6::QuickControls2
+        Qt6::Svg
         Qt6::Widgets
 )
 
@@ -260,7 +268,17 @@ qt_add_executable(kuclaw_application_reopen_policy_tests
     ${CMAKE_SOURCE_DIR}/tests/cpp/tst_application_reopen_policy.cpp
 )
 
+qt_add_executable(kuclaw_tray_manager_tests
+    ${CMAKE_SOURCE_DIR}/tests/cpp/tst_tray_manager.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/tray/TrayManager.cpp
+)
+
 set_target_properties(kuclaw_application_reopen_policy_tests PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+)
+
+set_target_properties(kuclaw_tray_manager_tests PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
@@ -271,11 +289,30 @@ target_include_directories(kuclaw_application_reopen_policy_tests
         ${CMAKE_SOURCE_DIR}/src
 )
 
+target_include_directories(kuclaw_tray_manager_tests
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/src
+)
+
 target_link_libraries(kuclaw_application_reopen_policy_tests
     PRIVATE
         Qt6::Core
         Qt6::Gui
         Qt6::Test
+)
+
+target_link_libraries(kuclaw_tray_manager_tests
+    PRIVATE
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::Test
+)
+
+target_compile_definitions(kuclaw_tray_manager_tests
+    PRIVATE
+        KUCLAW_MENU_BAR_ICON_FILE_PATH=\"${CMAKE_SOURCE_DIR}/assets/icons/icon.icns\"
 )
 
 set_target_properties(kuclaw_window_chrome_tests PROPERTIES
@@ -300,6 +337,31 @@ target_link_libraries(kuclaw_window_chrome_tests
 )
 
 if(APPLE)
+    target_sources(kuclaw_tray_manager_tests
+        PRIVATE
+            ${CMAKE_SOURCE_DIR}/src/core/tray/MacStatusItemBackend.mm
+    )
+
+    set_source_files_properties(
+        ${CMAKE_SOURCE_DIR}/src/core/tray/MacStatusItemBackend.mm
+        PROPERTIES COMPILE_OPTIONS "-fobjc-arc"
+    )
+
+    set_target_properties(kuclaw_tray_manager_tests PROPERTIES
+        OBJCXX_STANDARD 20
+        OBJCXX_STANDARD_REQUIRED ON
+    )
+
+    target_compile_options(kuclaw_tray_manager_tests
+        PRIVATE
+            $<$<COMPILE_LANGUAGE:OBJCXX>:-std=c++20>
+    )
+
+    target_link_libraries(kuclaw_tray_manager_tests
+        PRIVATE
+            "-framework AppKit"
+    )
+
     set_target_properties(kuclaw_window_chrome_tests PROPERTIES
         OBJCXX_STANDARD 20
         OBJCXX_STANDARD_REQUIRED ON
@@ -333,6 +395,11 @@ set_tests_properties(kuclaw_window_chrome_tests PROPERTIES
 
 add_test(NAME kuclaw_application_reopen_policy_tests COMMAND kuclaw_application_reopen_policy_tests)
 set_tests_properties(kuclaw_application_reopen_policy_tests PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+)
+
+add_test(NAME kuclaw_tray_manager_tests COMMAND kuclaw_tray_manager_tests)
+set_tests_properties(kuclaw_tray_manager_tests PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 )
 

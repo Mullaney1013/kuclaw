@@ -1,14 +1,50 @@
 #include "core/tray/TrayManager.h"
 
 #include <QAction>
+#include <QCoreApplication>
+#include <QDir>
+#include <QFileInfo>
 #include <QIcon>
 #include <QMenu>
 #include <QSystemTrayIcon>
 
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+#include "core/tray/MacStatusItemBackend.h"
+#endif
+
+namespace {
+
+QString macMenuBarIconPath() {
+    const QString appDir = QCoreApplication::applicationDirPath();
+    const QString bundleResourcePath =
+        QDir(appDir).absoluteFilePath(QStringLiteral("../Resources/assets/icons/icon.icns"));
+    if (QFileInfo::exists(bundleResourcePath)) {
+        return QFileInfo(bundleResourcePath).absoluteFilePath();
+    }
+
+    return QStringLiteral("/Users/Y/Documents/kuclaw/assets/icons/icon.icns");
+}
+
+}  // namespace
+
 TrayManager::TrayManager(QObject* parent)
-    : QObject(parent),
-      trayIcon_(new QSystemTrayIcon(this)),
-      menu_(new QMenu()) {
+    : QObject(parent) {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    macStatusItemBackend_ = std::make_unique<MacStatusItemBackend>(
+        MacStatusItemBackend::Callbacks{
+            .triggerCapture = [this]() { emit captureRequested(); },
+            .middleClickPin = [this]() { emit pinRequested(); },
+            .showCaptureMenuAction = [this]() { emit captureRequested(); },
+            .showPinMenuAction = [this]() { emit pinRequested(); },
+            .showRestoreMenuAction = [this]() { emit restoreLastClosedPinRequested(); },
+            .showHideAllMenuAction = [this]() { emit hideAllPinsRequested(); },
+            .showQuitMenuAction = [this]() { emit quitRequested(); },
+        });
+    macStatusItemBackend_->setToolTip(QStringLiteral("Kuclaw"));
+    macStatusItemBackend_->setTemplateImageFile(macMenuBarIconPath());
+#else
+    trayIcon_ = new QSystemTrayIcon(this);
+    menu_ = new QMenu();
     buildMenu();
     trayIcon_->setContextMenu(menu_);
     trayIcon_->setToolTip("Kuclaw");
@@ -22,6 +58,7 @@ TrayManager::TrayManager(QObject* parent)
                     emit pinRequested();
                 }
             });
+#endif
 }
 
 TrayManager::~TrayManager() {
@@ -29,13 +66,49 @@ TrayManager::~TrayManager() {
 }
 
 void TrayManager::show() {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    if (macStatusItemBackend_) {
+        macStatusItemBackend_->show();
+    }
+#else
     if (QSystemTrayIcon::isSystemTrayAvailable()) {
         trayIcon_->show();
     }
+#endif
 }
 
 void TrayManager::hide() {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    if (macStatusItemBackend_) {
+        macStatusItemBackend_->hide();
+    }
+#else
     trayIcon_->hide();
+#endif
+}
+
+bool TrayManager::usesNativeMacStatusItemForTesting() const {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    return macStatusItemBackend_ != nullptr;
+#else
+    return false;
+#endif
+}
+
+bool TrayManager::isVisibleForTesting() const {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    return macStatusItemBackend_ != nullptr && macStatusItemBackend_->isVisible();
+#else
+    return trayIcon_ != nullptr && trayIcon_->isVisible();
+#endif
+}
+
+bool TrayManager::hasRenderableIconForTesting() const {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    return macStatusItemBackend_ != nullptr && macStatusItemBackend_->hasRenderableImage();
+#else
+    return trayIcon_ != nullptr && !trayIcon_->icon().isNull();
+#endif
 }
 
 void TrayManager::buildMenu() {
