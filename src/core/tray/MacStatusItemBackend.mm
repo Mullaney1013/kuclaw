@@ -625,6 +625,19 @@ public:
         return renderedRasterPixelSize_;
     }
 
+    bool hasAttachedStatusItemScreen() const {
+        return statusItem_ != nil && statusItem_.button != nil && statusItem_.button.window != nil
+               && statusItem_.button.window.screen != nil;
+    }
+
+    double attachedStatusItemScreenScale() const {
+        if (!hasAttachedStatusItemScreen()) {
+            return 0.0;
+        }
+
+        return static_cast<double>(std::max<CGFloat>(1.0, std::ceil(statusItem_.button.window.screen.backingScaleFactor)));
+    }
+
     void simulateScreenConfigurationChangeForTesting() {
         rerenderImageForCurrentScale();
     }
@@ -751,6 +764,14 @@ QSize MacStatusItemBackend::sourceRasterPixelSizeForTesting() const {
 
 QSize MacStatusItemBackend::renderedRasterPixelSizeForTesting() const {
     return impl_->renderedRasterPixelSize();
+}
+
+bool MacStatusItemBackend::hasAttachedStatusItemScreenForTesting() const {
+    return impl_->hasAttachedStatusItemScreen();
+}
+
+double MacStatusItemBackend::attachedStatusItemScreenScaleForTesting() const {
+    return impl_->attachedStatusItemScreenScale();
 }
 
 void MacStatusItemBackend::simulateScreenConfigurationChangeForTesting() {

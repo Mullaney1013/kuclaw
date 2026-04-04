@@ -38,6 +38,8 @@ public:
     double imageScaleFactorForTesting() const;
     QSize renderedRasterPixelSizeForTesting() const;
     QSize sourceRasterPixelSizeForTesting() const;
+    bool hasAttachedStatusItemScreenForTesting() const;
+    double attachedStatusItemScreenScaleForTesting() const;
     void simulateScreenConfigurationChangeForTesting();
     static void setScaleFactorOverrideForTesting(double scaleFactor);
     static void clearScaleFactorOverrideForTesting();

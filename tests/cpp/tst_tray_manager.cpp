@@ -293,6 +293,33 @@ private slots:
         QSKIP("Native menu bar template rendering is only available on macOS.");
 #endif
     }
+
+    void menuBarIconUsesAttachedStatusItemScreenScaleAfterShow() {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+        MacStatusItemBackend::clearScaleFactorOverrideForTesting();
+
+        MacStatusItemBackend backend(MacStatusItemBackend::Callbacks{});
+        backend.setTemplateImageFile(QStringLiteral(KUCLAW_MENU_BAR_ICON_FILE_PATH));
+        backend.show();
+
+        QTest::qWait(250);
+        if (!backend.hasAttachedStatusItemScreenForTesting()) {
+            backend.hide();
+            QSKIP("No attached AppKit screen available for the visible status item in this environment.");
+        }
+
+        const double attachedScale = backend.attachedStatusItemScreenScaleForTesting();
+        QVERIFY2(attachedScale >= 1.0,
+                 "attached menu bar extra should report a valid backing scale from its actual screen.");
+
+        const int expectedPixels = std::max(1, qRound(22.0 * std::ceil(attachedScale)));
+        QCOMPARE(backend.renderedRasterPixelSizeForTesting(), QSize(expectedPixels, expectedPixels));
+
+        backend.hide();
+#else
+        QSKIP("Native menu bar template rendering is only available on macOS.");
+#endif
+    }
 };
 
 QTEST_MAIN(TrayManagerTest)
