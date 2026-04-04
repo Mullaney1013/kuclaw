@@ -320,6 +320,29 @@ private slots:
         QSKIP("Native menu bar template rendering is only available on macOS.");
 #endif
     }
+
+    void rightClickMenuUsesTemporaryMenuAttachment() {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+        MacStatusItemBackend backend(MacStatusItemBackend::Callbacks{});
+        backend.setTemplateImageFile(QStringLiteral(KUCLAW_MENU_BAR_ICON_FILE_PATH));
+        backend.show();
+
+        QVERIFY2(!backend.isMenuAttachedForTesting(),
+                 "status item should not keep the menu permanently attached before interaction.");
+
+        backend.simulateRightClickForTesting();
+        QVERIFY2(backend.isMenuAttachedForTesting(),
+                 "right click should attach the menu long enough for AppKit to present it.");
+
+        backend.simulateMenuClosedForTesting();
+        QVERIFY2(!backend.isMenuAttachedForTesting(),
+                 "menu should detach again after AppKit finishes presenting it.");
+
+        backend.hide();
+#else
+        QSKIP("Native menu bar status-item menu handling is only available on macOS.");
+#endif
+    }
 };
 
 QTEST_MAIN(TrayManagerTest)

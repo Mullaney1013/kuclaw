@@ -20,7 +20,7 @@ static constexpr CGFloat kMenuBarIconPointSize = 22.0;
 static constexpr CGFloat kMenuBarGlyphInsetPoints = 1.0;
 static constexpr int kSourceCropAlphaThreshold = 8;
 
-@interface KuclawStatusItemTarget : NSObject
+@interface KuclawStatusItemTarget : NSObject <NSMenuDelegate>
 
 @property(nonatomic, weak) NSStatusItem* statusItem;
 @property(nonatomic, strong) NSMenu* menu;
@@ -33,6 +33,8 @@ static constexpr int kSourceCropAlphaThreshold = 8;
 @property(nonatomic, copy) dispatch_block_t showQuitMenuAction;
 
 - (void)handleStatusItemAction:(id)sender;
+- (void)presentStatusItemMenu;
+- (void)detachPresentedMenuIfNeeded;
 - (void)captureMenuTriggered:(id)sender;
 - (void)pinMenuTriggered:(id)sender;
 - (void)restoreMenuTriggered:(id)sender;
@@ -379,9 +381,7 @@ void applyStatusItemButtonImage(NSStatusBarButton* button, NSImage* image) {
 
     if (event.type == NSEventTypeRightMouseUp || event.type == NSEventTypeRightMouseDown
         || event.buttonNumber == 1) {
-        if (self.statusItem != nil && self.menu != nil) {
-            [self.statusItem popUpStatusItemMenu:self.menu];
-        }
+        [self presentStatusItemMenu];
         return;
     }
 
@@ -394,6 +394,31 @@ void applyStatusItemButtonImage(NSStatusBarButton* button, NSImage* image) {
 
     if (self.triggerCapture != nil) {
         self.triggerCapture();
+    }
+}
+
+- (void)presentStatusItemMenu {
+    if (self.statusItem == nil || self.menu == nil) {
+        return;
+    }
+
+    self.menu.delegate = self;
+    self.statusItem.menu = self.menu;
+
+    if (self.statusItem.button != nil) {
+        [self.statusItem.button performClick:nil];
+    }
+}
+
+- (void)detachPresentedMenuIfNeeded {
+    if (self.statusItem != nil && self.statusItem.menu == self.menu) {
+        self.statusItem.menu = nil;
+    }
+}
+
+- (void)menuDidClose:(NSMenu*)menu {
+    if (menu == self.menu) {
+        [self detachPresentedMenuIfNeeded];
     }
 }
 
@@ -630,6 +655,10 @@ public:
                && statusItem_.button.window.screen != nil;
     }
 
+    bool isMenuAttached() const {
+        return statusItem_ != nil && target_ != nil && statusItem_.menu == target_.menu;
+    }
+
     double attachedStatusItemScreenScale() const {
         if (!hasAttachedStatusItemScreen()) {
             return 0.0;
@@ -640,6 +669,14 @@ public:
 
     void simulateScreenConfigurationChangeForTesting() {
         rerenderImageForCurrentScale();
+    }
+
+    void simulateRightClick() {
+        [target_ presentStatusItemMenu];
+    }
+
+    void simulateMenuClosedForTesting() {
+        [target_ menuDidClose:target_.menu];
     }
 
 private:
@@ -772,6 +809,18 @@ bool MacStatusItemBackend::hasAttachedStatusItemScreenForTesting() const {
 
 double MacStatusItemBackend::attachedStatusItemScreenScaleForTesting() const {
     return impl_->attachedStatusItemScreenScale();
+}
+
+bool MacStatusItemBackend::isMenuAttachedForTesting() const {
+    return impl_->isMenuAttached();
+}
+
+void MacStatusItemBackend::simulateRightClickForTesting() {
+    impl_->simulateRightClick();
+}
+
+void MacStatusItemBackend::simulateMenuClosedForTesting() {
+    impl_->simulateMenuClosedForTesting();
 }
 
 void MacStatusItemBackend::simulateScreenConfigurationChangeForTesting() {

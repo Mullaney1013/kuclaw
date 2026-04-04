@@ -40,6 +40,9 @@ public:
     QSize sourceRasterPixelSizeForTesting() const;
     bool hasAttachedStatusItemScreenForTesting() const;
     double attachedStatusItemScreenScaleForTesting() const;
+    bool isMenuAttachedForTesting() const;
+    void simulateRightClickForTesting();
+    void simulateMenuClosedForTesting();
     void simulateScreenConfigurationChangeForTesting();
     static void setScaleFactorOverrideForTesting(double scaleFactor);
     static void clearScaleFactorOverrideForTesting();
