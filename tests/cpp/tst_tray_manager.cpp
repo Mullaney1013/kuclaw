@@ -57,7 +57,7 @@ private slots:
         }
 
         const double normalizedAlphaPixels = static_cast<double>(alphaPixels) / (scaleFactor * scaleFactor);
-        QVERIFY2(normalizedAlphaPixels >= 110.0,
+        QVERIFY2(normalizedAlphaPixels >= 125.0,
                  qPrintable(QStringLiteral("menu-bar glyph should occupy enough ink to stay visible at 22pt; got %1 physical alpha pixels (%2 normalized)")
                                 .arg(alphaPixels)
                                 .arg(normalizedAlphaPixels, 0, 'f', 1)));
@@ -67,11 +67,11 @@ private slots:
         const double width = static_cast<double>(maxX - minX + 1) / scaleFactor;
         const double height = static_cast<double>(maxY - minY + 1) / scaleFactor;
 
-        QVERIFY2(width >= 14,
-                 qPrintable(QStringLiteral("menu-bar glyph should span at least 14pt horizontally inside the 22pt slot; got %1")
+        QVERIFY2(width >= 16,
+                 qPrintable(QStringLiteral("menu-bar glyph should span at least 16pt horizontally inside the 22pt slot; got %1")
                                 .arg(width)));
-        QVERIFY2(height >= 14,
-                 qPrintable(QStringLiteral("menu-bar glyph should span at least 14pt vertically inside the 22pt slot; got %1")
+        QVERIFY2(height >= 16,
+                 qPrintable(QStringLiteral("menu-bar glyph should span at least 16pt vertically inside the 22pt slot; got %1")
                                 .arg(height)));
     }
 

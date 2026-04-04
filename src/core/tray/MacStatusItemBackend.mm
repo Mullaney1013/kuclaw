@@ -7,6 +7,7 @@
 #include <QFileInfo>
 #include <QIcon>
 #include <QImage>
+#include <QPainter>
 #include <QPixmap>
 #include <QSize>
 #include <QString>
@@ -15,7 +16,8 @@
 #import <CoreGraphics/CoreGraphics.h>
 
 static constexpr CGFloat kMenuBarIconPointSize = 22.0;
-static constexpr CGFloat kMenuBarGlyphInsetPoints = 2.0;
+static constexpr CGFloat kMenuBarGlyphInsetPoints = 1.0;
+static constexpr int kSourceCropAlphaThreshold = 8;
 
 @interface KuclawStatusItemTarget : NSObject
 
@@ -59,7 +61,7 @@ QSize menuBarPixelCanvasSize(CGFloat scaleFactor) {
     return QSize(pixels, pixels);
 }
 
-QImage rasterizeNSImage(NSImage* sourceImage, const QSize& pixelCanvasSize, CGFloat scaleFactor) {
+QImage rasterizeNSImage(NSImage* sourceImage, const QSize& pixelCanvasSize) {
     if (sourceImage == nil || !sourceImage.isValid) {
         return {};
     }
@@ -90,14 +92,7 @@ QImage rasterizeNSImage(NSImage* sourceImage, const QSize& pixelCanvasSize, CGFl
     [[NSColor clearColor] set];
     NSRectFill(NSMakeRect(0.0, 0.0, pixelCanvasSize.width(), pixelCanvasSize.height()));
 
-    const CGFloat targetSize =
-        std::max<CGFloat>(1.0, (kMenuBarIconPointSize - (kMenuBarGlyphInsetPoints * 2.0)) * scaleFactor);
-    const NSRect drawRect =
-        NSMakeRect(kMenuBarGlyphInsetPoints * scaleFactor,
-                   kMenuBarGlyphInsetPoints * scaleFactor,
-                   targetSize,
-                   targetSize);
-    [sourceImage drawInRect:drawRect
+    [sourceImage drawInRect:NSMakeRect(0.0, 0.0, pixelCanvasSize.width(), pixelCanvasSize.height())
                    fromRect:NSZeroRect
                   operation:NSCompositingOperationSourceOver
                    fraction:1.0
@@ -122,6 +117,81 @@ QImage rasterizeNSImage(NSImage* sourceImage, const QSize& pixelCanvasSize, CGFl
     }
 
     return image;
+}
+
+QRect alphaBounds(const QImage& image, int minAlpha) {
+    if (image.isNull()) {
+        return {};
+    }
+
+    int minX = image.width();
+    int minY = image.height();
+    int maxX = -1;
+    int maxY = -1;
+
+    for (int y = 0; y < image.height(); ++y) {
+        for (int x = 0; x < image.width(); ++x) {
+            if (image.pixelColor(x, y).alpha() < minAlpha) {
+                continue;
+            }
+
+            minX = std::min(minX, x);
+            minY = std::min(minY, y);
+            maxX = std::max(maxX, x);
+            maxY = std::max(maxY, y);
+        }
+    }
+
+    if (maxX < minX || maxY < minY) {
+        return {};
+    }
+
+    return QRect(QPoint(minX, minY), QPoint(maxX, maxY));
+}
+
+QSize preferredSourceRasterSize(NSImage* sourceImage, const QSize& fallbackSize) {
+    if (sourceImage == nil || !sourceImage.isValid) {
+        return fallbackSize;
+    }
+
+    const NSRect proposedRect = NSMakeRect(0.0, 0.0, 512.0, 512.0);
+    NSImageRep* rep = [sourceImage bestRepresentationForRect:proposedRect
+                                                     context:nil
+                                                       hints:nil];
+    if (rep == nil || rep.pixelsWide <= 0 || rep.pixelsHigh <= 0) {
+        return fallbackSize;
+    }
+
+    return QSize(static_cast<int>(rep.pixelsWide), static_cast<int>(rep.pixelsHigh));
+}
+
+QImage cropAndFitMenuBarGlyph(const QImage& sourceImage, const QSize& pixelCanvasSize, CGFloat scaleFactor) {
+    if (sourceImage.isNull()) {
+        return {};
+    }
+
+    const QRect sourceBounds = alphaBounds(sourceImage, kSourceCropAlphaThreshold);
+    if (!sourceBounds.isValid()) {
+        return {};
+    }
+
+    const int insetPixels = std::max(0, static_cast<int>(std::lround(kMenuBarGlyphInsetPoints * scaleFactor)));
+    const int targetSide = std::max(1, std::min(pixelCanvasSize.width(), pixelCanvasSize.height()) - (insetPixels * 2));
+    const QRect targetRect((pixelCanvasSize.width() - targetSide) / 2,
+                           (pixelCanvasSize.height() - targetSide) / 2,
+                           targetSide,
+                           targetSide);
+
+    QImage output(pixelCanvasSize, QImage::Format_RGBA8888);
+    output.fill(Qt::transparent);
+
+    QPainter painter(&output);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+    painter.drawImage(targetRect, sourceImage, sourceBounds);
+    painter.end();
+
+    return output;
 }
 
 QImage menuBarTemplateGlyphFromImage(const QImage& sourceImage) {
@@ -209,7 +279,10 @@ QImage rasterizedMenuBarTemplateImageFromFile(const QString& filePath, CGFloat s
         return {};
     }
 
-    return menuBarTemplateGlyphFromImage(rasterizeNSImage(nsImage, menuBarPixelCanvasSize(scaleFactor), scaleFactor));
+    const QSize pixelCanvasSize = menuBarPixelCanvasSize(scaleFactor);
+    const QSize sourceRasterSize = preferredSourceRasterSize(nsImage, pixelCanvasSize);
+    const QImage sourceRaster = rasterizeNSImage(nsImage, sourceRasterSize);
+    return menuBarTemplateGlyphFromImage(cropAndFitMenuBarGlyph(sourceRaster, pixelCanvasSize, scaleFactor));
 }
 
 NSImage* toTemplateImage(const QIcon& icon) {
@@ -445,7 +518,7 @@ public:
             return {};
         }
 
-        return rasterizeNSImage(image_, imagePixelSize(), imageScaleFactor());
+        return rasterizeNSImage(image_, imagePixelSize());
     }
 
     QSize imagePixelSize() const {
