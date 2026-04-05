@@ -102,6 +102,8 @@ TestCase {
             property string currentPage: "none"
             property alias controller: controller
             property alias expandedSettings: expandedSettings
+            property alias hoverRailColumn: hoverRailColumn
+            property alias railSettingsIcon: settingsIcon
 
             function openSettingsPageFromPopover() {
                 shell.currentPage = "settings"
@@ -112,7 +114,7 @@ TestCase {
                 email: "sinobec1013@gmail.com"
                 accountLabel: "Personal account"
                 expandedTriggerItem: expandedSettings.settingsTrigger
-                railTriggerItem: collapsedSettingsTrigger
+                railTriggerItem: settingsIcon
                 onSettingsRequested: shell.openSettingsPageFromPopover()
             }
 
@@ -126,17 +128,25 @@ TestCase {
                 onToggleRequested: controller.toggleExpandedPopover()
             }
 
-            Rectangle {
-                x: 20
+            Item {
+                id: hoverRailColumn
+                visible: true
+                x: 336
                 y: 820
                 width: 44
                 height: 44
 
-                MouseArea {
-                    id: collapsedSettingsTrigger
-                    objectName: "collapsedSettingsTrigger"
-                    anchors.fill: parent
-                    onClicked: controller.toggleRailPopover()
+                Item {
+                    id: settingsIcon
+                    width: 44
+                    height: 44
+
+                    MouseArea {
+                        id: collapsedSettingsTrigger
+                        objectName: "collapsedSettingsTrigger"
+                        anchors.fill: parent
+                        onClicked: controller.toggleRailPopover()
+                    }
                 }
             }
         }
@@ -454,5 +464,35 @@ TestCase {
         mouseClick(findByObjectName(harness, "collapsedSettingsTrigger"), 22, 22, Qt.LeftButton)
         tryCompare(harness.controller, "popoverOpen", true)
         compare(harness.controller.activeTriggerKind, "rail")
+    }
+
+    function test_phase_two_shell_closes_expanded_popover_when_parent_hides() {
+        const harness = createPhaseTwoShellHarness()
+
+        verify(harness !== null)
+        verify(harness.controller !== null)
+
+        mouseClick(harness.expandedSettings.settingsTrigger, 24, 24, Qt.LeftButton)
+        tryCompare(harness.controller, "popoverOpen", true)
+        compare(harness.controller.activeTriggerKind, "expanded")
+
+        harness.expandedSettings.visible = false
+
+        tryCompare(harness.controller, "popoverOpen", false)
+    }
+
+    function test_phase_two_shell_closes_rail_popover_when_hover_column_hides() {
+        const harness = createPhaseTwoShellHarness()
+
+        verify(harness !== null)
+        verify(harness.controller !== null)
+
+        mouseClick(findByObjectName(harness, "collapsedSettingsTrigger"), 22, 22, Qt.LeftButton)
+        tryCompare(harness.controller, "popoverOpen", true)
+        compare(harness.controller.activeTriggerKind, "rail")
+
+        harness.hoverRailColumn.visible = false
+
+        tryCompare(harness.controller, "popoverOpen", false)
     }
 }

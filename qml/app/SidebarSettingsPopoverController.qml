@@ -16,8 +16,20 @@ Item {
     readonly property var activeTriggerParent: activeTriggerItem ? activeTriggerItem.parent : null
     readonly property real activeTriggerX: activeTriggerItem ? activeTriggerItem.x : 0
     readonly property real activeTriggerY: activeTriggerItem ? activeTriggerItem.y : 0
-    readonly property bool activeTriggerVisible: activeTriggerItem ? activeTriggerItem.visible : false
+    readonly property bool activeTriggerVisible: activeTriggerItem ? isItemChainVisible(activeTriggerItem) : false
     signal settingsRequested()
+
+    function isItemChainVisible(item) {
+        let current = item
+        while (current) {
+            if (current.visible === false) {
+                return false
+            }
+            current = current.parent
+        }
+
+        return true
+    }
 
     function updatePopoverPosition() {
         if (!settingsPopover || !activeTriggerItem) {
@@ -161,7 +173,7 @@ Item {
         repeat: true
         running: root.popoverOpen
         onTriggered: {
-            if (!root.activeTriggerItem || !root.activeTriggerVisible) {
+            if (!root.activeTriggerItem || !root.isItemChainVisible(root.activeTriggerItem)) {
                 root.closePopover()
                 return
             }
