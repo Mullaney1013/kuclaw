@@ -54,6 +54,7 @@ endif()
 set(KUCLAW_QML_FILES
     ${CMAKE_SOURCE_DIR}/qml/app/Main.qml
     ${CMAKE_SOURCE_DIR}/qml/app/AppShell.qml
+    ${CMAKE_SOURCE_DIR}/qml/app/SettingsPopover.qml
     ${CMAKE_SOURCE_DIR}/qml/app/AutomationSectionStyles.js
     ${CMAKE_SOURCE_DIR}/qml/app/TitleBarLayout.js
     ${CMAKE_SOURCE_DIR}/qml/app/TitleBarDragRegion.qml
@@ -79,6 +80,9 @@ set(KUCLAW_RESOURCE_FILES
     ${CMAKE_SOURCE_DIR}/assets/icons/team.svg
     ${CMAKE_SOURCE_DIR}/assets/icons/settings.svg
     ${CMAKE_SOURCE_DIR}/assets/icons/sidebar-toggle.svg
+    ${CMAKE_SOURCE_DIR}/assets/icons/language.svg
+    ${CMAKE_SOURCE_DIR}/assets/icons/rate-limits-remaining.svg
+    ${CMAKE_SOURCE_DIR}/assets/icons/log-out.svg
 )
 
 set_source_files_properties(
@@ -88,6 +92,10 @@ set_source_files_properties(
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/AppShell.qml
     PROPERTIES QT_RESOURCE_ALIAS app/AppShell.qml
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/qml/app/SettingsPopover.qml
+    PROPERTIES QT_RESOURCE_ALIAS app/SettingsPopover.qml
 )
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/AutomationSectionStyles.js
@@ -148,6 +156,18 @@ set_source_files_properties(
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/assets/icons/sidebar-toggle.svg
     PROPERTIES QT_RESOURCE_ALIAS assets/icons/sidebar-toggle.svg
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/assets/icons/language.svg
+    PROPERTIES QT_RESOURCE_ALIAS assets/icons/language.svg
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/assets/icons/rate-limits-remaining.svg
+    PROPERTIES QT_RESOURCE_ALIAS assets/icons/rate-limits-remaining.svg
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/assets/icons/log-out.svg
+    PROPERTIES QT_RESOURCE_ALIAS assets/icons/log-out.svg
 )
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/capture/CaptureOverlay.qml
