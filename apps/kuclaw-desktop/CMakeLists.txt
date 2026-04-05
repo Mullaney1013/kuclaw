@@ -54,6 +54,7 @@ endif()
 set(KUCLAW_QML_FILES
     ${CMAKE_SOURCE_DIR}/qml/app/Main.qml
     ${CMAKE_SOURCE_DIR}/qml/app/AppShell.qml
+    ${CMAKE_SOURCE_DIR}/qml/app/ExpandedSidebarSettingsPopover.qml
     ${CMAKE_SOURCE_DIR}/qml/app/SettingsPopover.qml
     ${CMAKE_SOURCE_DIR}/qml/app/AutomationSectionStyles.js
     ${CMAKE_SOURCE_DIR}/qml/app/TitleBarLayout.js
@@ -92,6 +93,10 @@ set_source_files_properties(
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/AppShell.qml
     PROPERTIES QT_RESOURCE_ALIAS app/AppShell.qml
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/qml/app/ExpandedSidebarSettingsPopover.qml
+    PROPERTIES QT_RESOURCE_ALIAS app/ExpandedSidebarSettingsPopover.qml
 )
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/SettingsPopover.qml

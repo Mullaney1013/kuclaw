@@ -22,8 +22,22 @@ TestCase {
         }
     }
 
+    Component {
+        id: sidebarSettingsPopoverComponent
+
+        ExpandedSidebarSettingsPopover {
+            width: 264
+            email: "sinobec1013@gmail.com"
+            accountLabel: "Personal account"
+        }
+    }
+
     function createSubject() {
         return createTemporaryObject(subjectComponent, host)
+    }
+
+    function createSidebarSettingsPopover() {
+        return createTemporaryObject(sidebarSettingsPopoverComponent, host)
     }
 
     function findByObjectName(node, name) {
@@ -158,5 +172,73 @@ TestCase {
         compare(rateLimitsCount, 0)
         compare(logOutCount, 0)
         verify(subject.opened)
+    }
+
+    function test_expanded_sidebar_settings_trigger_toggles_popover() {
+        const subject = createSidebarSettingsPopover()
+
+        verify(subject !== null)
+        verify(subject.settingsTrigger !== null)
+        verify(subject.settingsPopover === null)
+
+        subject.toggleSettingsPopover()
+        verify(subject.settingsPopover !== null)
+        tryCompare(subject.settingsPopover, "opened", true)
+        verify(subject.settingsTrigger.popoverActive)
+
+        subject.toggleSettingsPopover()
+        tryCompare(subject.settingsPopover, "opened", false)
+        verify(!subject.settingsTrigger.popoverActive)
+    }
+
+    function test_settings_popover_opens_above_trigger_and_closes_on_escape() {
+        const subject = createSidebarSettingsPopover()
+
+        verify(subject !== null)
+        subject.toggleSettingsPopover()
+
+        verify(subject.settingsPopover !== null)
+        tryCompare(subject.settingsPopover, "opened", true)
+        verify(subject.settingsPopover.y + subject.settingsPopover.height <= 0)
+
+        keyClick(Qt.Key_Escape)
+        tryCompare(subject.settingsPopover, "opened", false)
+        verify(!subject.settingsTrigger.popoverActive)
+    }
+
+    function test_settings_popover_closes_on_outside_click() {
+        const subject = createSidebarSettingsPopover()
+
+        verify(subject !== null)
+        subject.toggleSettingsPopover()
+
+        verify(subject.settingsPopover !== null)
+        tryCompare(subject.settingsPopover, "opened", true)
+
+        verify(subject.outsideClickCatcher !== null)
+        mouseClick(subject.outsideClickCatcher, 8, 8, Qt.LeftButton)
+        tryCompare(subject.settingsPopover, "opened", false)
+        verify(!subject.settingsTrigger.popoverActive)
+    }
+
+    function test_settings_popover_reanchors_when_trigger_moves() {
+        const subject = createSidebarSettingsPopover()
+
+        verify(subject !== null)
+        subject.x = 40
+        subject.y = 300
+        subject.toggleSettingsPopover()
+
+        verify(subject.settingsPopover !== null)
+        tryCompare(subject.settingsPopover, "opened", true)
+
+        const originalX = subject.settingsPopover.x
+        const originalY = subject.settingsPopover.y
+
+        subject.x += 24
+        subject.y -= 36
+
+        tryCompare(subject.settingsPopover, "x", originalX + 24)
+        tryCompare(subject.settingsPopover, "y", originalY - 36)
     }
 }

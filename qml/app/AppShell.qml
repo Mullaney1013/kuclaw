@@ -327,7 +327,7 @@ ApplicationWindow {
             }
         }
 
-        ExpandedSidebarButton {
+        ExpandedSidebarSettingsPopover {
             id: settingsRow
             visible: root.shellState.showExpandedSidebar
             anchors.left: parent.left
@@ -336,10 +336,8 @@ ApplicationWindow {
             anchors.rightMargin: root.expandedSidebarLayout.sideMargin
             anchors.bottom: parent.bottom
             anchors.bottomMargin: root.expandedSidebarSettings.bottomMargin
-            pageKey: "settings"
-            title: "Settings"
-            iconSource: "qrc:/qt/qml/Kuclaw/assets/icons/settings.svg"
-            selectionEnabled: false
+            email: "sinobec1013@gmail.com"
+            accountLabel: "Personal account"
         }
 
         Item {
