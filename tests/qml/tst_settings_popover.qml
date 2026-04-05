@@ -40,8 +40,6 @@ TestCase {
 
         ExpandedSidebarSettingsPopover {
             width: 264
-            email: "sinobec1013@gmail.com"
-            accountLabel: "Personal account"
         }
     }
 
@@ -57,14 +55,18 @@ TestCase {
             property int settingsRequests: 0
             property alias controller: controllerItem
             property alias expandedAnchor: expandedAnchorItem
+            property alias expandedSettings: expandedAnchorItem
             property alias railAnchor: railAnchorItem
 
-            Rectangle {
+            ExpandedSidebarSettingsPopover {
                 id: expandedAnchorItem
                 x: 24
                 y: 820
                 width: 264
                 height: 52
+                selected: shellHarness.currentPage === "settings"
+                popoverOpen: controllerItem.popoverOpen && controllerItem.activeTriggerKind === "expanded"
+                onToggleRequested: controllerItem.toggleExpandedPopover()
             }
 
             Rectangle {
@@ -101,8 +103,12 @@ TestCase {
         return createTemporaryObject(sidebarSettingsPopoverComponent, host)
     }
 
+    function createWindowSidebarSettingsPopover() {
+        return createTemporaryObject(sidebarSettingsPopoverComponent, popupHost)
+    }
+
     function createPhaseTwoHarness() {
-        return createTemporaryObject(phaseTwoHarnessComponent, host)
+        return createTemporaryObject(phaseTwoHarnessComponent, popupHost)
     }
 
     function findByObjectName(node, name) {
@@ -238,72 +244,41 @@ TestCase {
         verify(subject.opened)
     }
 
-    function test_expanded_sidebar_settings_trigger_toggles_popover() {
+    function test_expanded_sidebar_settings_trigger_reflects_external_state() {
         const subject = createSidebarSettingsPopover()
 
         verify(subject !== null)
         verify(subject.settingsTrigger !== null)
-        verify(subject.settingsPopover === null)
+        compare(subject.selected, false)
+        compare(subject.popoverOpen, false)
+        compare(subject.settingsTrigger.popoverActive, false)
 
-        subject.toggleSettingsPopover()
-        verify(subject.settingsPopover !== null)
-        tryCompare(subject.settingsPopover, "opened", true)
-        verify(subject.settingsTrigger.popoverActive)
+        subject.selected = true
+        compare(subject.selected, true)
+        compare(subject.settingsTrigger.popoverActive, false)
+        compare(subject.visualState.selected, true)
+        compare(subject.chrome.fill, "#E9EEF5")
 
-        subject.toggleSettingsPopover()
-        tryCompare(subject.settingsPopover, "opened", false)
-        verify(!subject.settingsTrigger.popoverActive)
+        subject.selected = false
+        subject.popoverOpen = true
+        compare(subject.popoverOpen, true)
+        compare(subject.settingsTrigger.popoverActive, true)
+        compare(subject.visualState.selected, true)
+        compare(subject.chrome.fill, "#FFFFFF")
     }
 
-    function test_settings_popover_opens_above_trigger_and_closes_on_escape() {
-        const subject = createSidebarSettingsPopover()
+    function test_expanded_sidebar_settings_trigger_emits_toggle_requested_on_click() {
+        const subject = createWindowSidebarSettingsPopover()
+        let toggleCount = 0
 
         verify(subject !== null)
-        subject.toggleSettingsPopover()
+        verify(subject.settingsTrigger !== null)
 
-        verify(subject.settingsPopover !== null)
-        tryCompare(subject.settingsPopover, "opened", true)
-        verify(subject.settingsPopover.y + subject.settingsPopover.height <= 0)
+        subject.toggleRequested.connect(function() { toggleCount += 1 })
 
-        keyClick(Qt.Key_Escape)
-        tryCompare(subject.settingsPopover, "opened", false)
-        verify(!subject.settingsTrigger.popoverActive)
-    }
+        mouseClick(subject.settingsTrigger, 24, 24, Qt.LeftButton)
 
-    function test_settings_popover_closes_on_outside_click() {
-        const subject = createSidebarSettingsPopover()
-
-        verify(subject !== null)
-        subject.toggleSettingsPopover()
-
-        verify(subject.settingsPopover !== null)
-        tryCompare(subject.settingsPopover, "opened", true)
-
-        verify(subject.outsideClickCatcher !== null)
-        mouseClick(subject.outsideClickCatcher, 8, 8, Qt.LeftButton)
-        tryCompare(subject.settingsPopover, "opened", false)
-        verify(!subject.settingsTrigger.popoverActive)
-    }
-
-    function test_settings_popover_reanchors_when_trigger_moves() {
-        const subject = createSidebarSettingsPopover()
-
-        verify(subject !== null)
-        subject.x = 40
-        subject.y = 300
-        subject.toggleSettingsPopover()
-
-        verify(subject.settingsPopover !== null)
-        tryCompare(subject.settingsPopover, "opened", true)
-
-        const originalX = subject.settingsPopover.x
-        const originalY = subject.settingsPopover.y
-
-        subject.x += 24
-        subject.y -= 36
-
-        tryCompare(subject.settingsPopover, "x", originalX + 24)
-        tryCompare(subject.settingsPopover, "y", originalY - 36)
+        compare(toggleCount, 1)
     }
 
     function test_controller_opens_from_both_anchor_types() {
@@ -312,7 +287,7 @@ TestCase {
         verify(harness !== null)
         verify(harness.controller !== null)
 
-        harness.controller.toggleExpandedPopover()
+        mouseClick(harness.expandedSettings.settingsTrigger, 24, 24, Qt.LeftButton)
         tryCompare(harness.controller, "popoverOpen", true)
         compare(harness.controller.activeTriggerKind, "expanded")
         verify(harness.controller.settingsPopover.y + harness.controller.settingsPopover.height <= harness.expandedAnchor.y)
@@ -329,7 +304,7 @@ TestCase {
         verify(harness !== null)
         verify(harness.controller !== null)
 
-        harness.controller.toggleExpandedPopover()
+        mouseClick(harness.expandedSettings.settingsTrigger, 24, 24, Qt.LeftButton)
         tryCompare(harness.controller, "popoverOpen", true)
 
         const originalX = harness.controller.settingsPopover.x
@@ -348,7 +323,7 @@ TestCase {
         verify(harness !== null)
         verify(harness.controller !== null)
 
-        harness.controller.toggleExpandedPopover()
+        mouseClick(harness.expandedSettings.settingsTrigger, 24, 24, Qt.LeftButton)
         tryCompare(harness.controller, "popoverOpen", true)
 
         harness.expandedAnchor.visible = false
@@ -362,7 +337,7 @@ TestCase {
         verify(harness !== null)
         verify(harness.controller !== null)
 
-        harness.controller.toggleExpandedPopover()
+        mouseClick(harness.expandedSettings.settingsTrigger, 24, 24, Qt.LeftButton)
         tryCompare(harness.controller, "popoverOpen", true)
 
         const settingsHitArea = findByObjectName(harness.controller.settingsPopover, "settingsHitArea")
