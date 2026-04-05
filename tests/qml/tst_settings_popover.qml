@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Window
 import QtTest
 import "../../qml/app"
 
@@ -11,6 +12,18 @@ TestCase {
         id: host
         width: 640
         height: 900
+    }
+
+    Window {
+        id: popupWindow
+        width: 640
+        height: 900
+        visible: true
+
+        Item {
+            id: popupHost
+            anchors.fill: parent
+        }
     }
 
     Component {
@@ -34,6 +47,10 @@ TestCase {
 
     function createSubject() {
         return createTemporaryObject(subjectComponent, host)
+    }
+
+    function createWindowSubject() {
+        return createTemporaryObject(subjectComponent, popupHost)
     }
 
     function createSidebarSettingsPopover() {
@@ -138,39 +155,38 @@ TestCase {
         compare(rateLimitsChevronSlot.x, 378)
     }
 
-    function test_phase_one_rows_are_visual_only() {
-        const subject = createSubject()
-        const settingsHitArea = findByObjectName(subject, "settingsHitArea")
-        const languageHitArea = findByObjectName(subject, "languageHitArea")
-        const rateLimitsHitArea = findByObjectName(subject, "rateLimitsHitArea")
-        const logOutHitArea = findByObjectName(subject, "logOutHitArea")
-        let settingsCount = 0
-        let languageCount = 0
-        let rateLimitsCount = 0
-        let logOutCount = 0
+    function test_settings_row_triggers_action_and_other_rows_remain_inert() {
+        const subject = createWindowSubject()
+        const settingsRow = findByObjectName(subject, "settingsRow")
+        const languageRow = findByObjectName(subject, "languageRow")
+        const rateLimitsRow = findByObjectName(subject, "rateLimitsRow")
+        const logOutRow = findByObjectName(subject, "logOutRow")
+        let currentActionCount = 0
 
-        verify(settingsHitArea !== null)
-        verify(languageHitArea !== null)
-        verify(rateLimitsHitArea !== null)
-        verify(logOutHitArea !== null)
+        verify(settingsRow !== null)
+        verify(languageRow !== null)
+        verify(rateLimitsRow !== null)
+        verify(logOutRow !== null)
 
-        subject.settingsClicked.connect(function() { settingsCount += 1 })
-        subject.languageClicked.connect(function() { languageCount += 1 })
-        subject.rateLimitsClicked.connect(function() { rateLimitsCount += 1 })
-        subject.logOutClicked.connect(function() { logOutCount += 1 })
+        subject.settingsClicked.connect(function() { currentActionCount += 1 })
 
         subject.open()
         tryCompare(subject, "opened", true)
 
-        mouseClick(settingsHitArea, 24, 24, Qt.LeftButton)
-        mouseClick(languageHitArea, 24, 24, Qt.LeftButton)
-        mouseClick(rateLimitsHitArea, 24, 24, Qt.LeftButton)
-        mouseClick(logOutHitArea, 24, 24, Qt.LeftButton)
+        tryCompare(settingsRow, "visible", true)
 
-        compare(settingsCount, 0)
-        compare(languageCount, 0)
-        compare(rateLimitsCount, 0)
-        compare(logOutCount, 0)
+        mouseClick(settingsRow, 24, 24, Qt.LeftButton)
+        compare(currentActionCount, 1)
+
+        mouseClick(languageRow, 24, 24, Qt.LeftButton)
+        compare(currentActionCount, 1)
+
+        mouseClick(rateLimitsRow, 24, 24, Qt.LeftButton)
+        compare(currentActionCount, 1)
+
+        mouseClick(logOutRow, 24, 24, Qt.LeftButton)
+
+        compare(currentActionCount, 1)
         verify(subject.opened)
     }
 

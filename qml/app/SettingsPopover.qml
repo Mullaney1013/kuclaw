@@ -132,6 +132,7 @@ Popup {
                 y: 8
                 width: parent.width
                 semanticId: "settings"
+                clickAction: function() { root.settingsClicked() }
                 rowHeight: root.metrics.standardRowHeight
                 iconSource: Qt.resolvedUrl("../../assets/icons/settings.svg")
                 label: "Settings"
@@ -188,6 +189,7 @@ Popup {
         property string iconSource: ""
         property string label: ""
         property bool showChevron: false
+        property var clickAction: null
         property real rowHeight: root.metrics.standardRowHeight
         property real topPadding: 0
         property real bottomPadding: 0
@@ -250,8 +252,12 @@ Popup {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            acceptedButtons: Qt.LeftButton
             onClicked: function(mouse) {
                 mouse.accepted = true
+                if (row.clickAction) {
+                    row.clickAction(mouse)
+                }
             }
         }
     }
