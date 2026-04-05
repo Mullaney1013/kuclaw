@@ -119,6 +119,13 @@ ApplicationWindow {
         }
     }
 
+    function openSettingsPageFromPopover() {
+        root.navigateToPage("settings")
+        if (root.shellState.mode === "rail") {
+            root.dispatchShellEvent("SIDEBAR_LEAVE")
+        }
+    }
+
     function isSidebarItemSelected(page) {
         return root.currentPage === page
     }
@@ -279,6 +286,16 @@ ApplicationWindow {
         }
     }
 
+    SidebarSettingsPopoverController {
+        id: settingsPopoverController
+        parent: root.contentItem
+        email: "sinobec1013@gmail.com"
+        accountLabel: "Personal account"
+        expandedTriggerItem: settingsRow.settingsTrigger
+        railTriggerItem: settingsIcon
+        onSettingsRequested: root.openSettingsPageFromPopover()
+    }
+
     Rectangle {
         id: sidebarPanel
         anchors.left: parent.left
@@ -336,8 +353,10 @@ ApplicationWindow {
             anchors.rightMargin: root.expandedSidebarLayout.sideMargin
             anchors.bottom: parent.bottom
             anchors.bottomMargin: root.expandedSidebarSettings.bottomMargin
-            email: "sinobec1013@gmail.com"
-            accountLabel: "Personal account"
+            selected: root.currentPage === "settings"
+            popoverOpen: settingsPopoverController.popoverOpen
+                         && settingsPopoverController.activeTriggerKind === "expanded"
+            onToggleRequested: settingsPopoverController.toggleExpandedPopover()
         }
 
         Item {
@@ -366,12 +385,45 @@ ApplicationWindow {
                 }
             }
 
-            RailSidebarButton {
+            Item {
                 id: settingsIcon
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
-                pageKey: "settings"
-                iconSource: "qrc:/qt/qml/Kuclaw/assets/icons/settings.svg"
+                width: WorkspaceShellStyles.railIconMetrics().width
+                height: WorkspaceShellStyles.railIconMetrics().height
+
+                property bool selected: settingsPopoverController.popoverOpen
+                                        && settingsPopoverController.activeTriggerKind === "rail"
+                property bool hovered: settingsIconMouse.containsMouse
+                readonly property var metrics: WorkspaceShellStyles.railIconMetrics()
+                readonly property var chrome: WorkspaceShellStyles.railIconChrome(selected, hovered)
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: settingsIcon.metrics.radius
+                    color: settingsIcon.chrome.fill
+                    border.color: settingsIcon.chrome.border
+                    border.width: settingsIcon.chrome.borderWidth
+                }
+
+                MouseArea {
+                    id: settingsIconMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: settingsPopoverController.toggleRailPopover()
+                }
+
+                Image {
+                    anchors.centerIn: parent
+                    width: 18
+                    height: 18
+                    fillMode: Image.PreserveAspectFit
+                    source: "qrc:/qt/qml/Kuclaw/assets/icons/settings.svg"
+                    opacity: settingsIcon.selected ? 0.9 : (settingsIcon.hovered ? 0.72 : 0.58)
+                    sourceSize.width: 18
+                    sourceSize.height: 18
+                }
             }
         }
     }

@@ -91,6 +91,57 @@ TestCase {
         }
     }
 
+    Component {
+        id: appShellPhaseTwoHarnessComponent
+
+        Item {
+            id: shell
+            width: 640
+            height: 900
+
+            property string currentPage: "none"
+            property alias controller: controller
+            property alias expandedSettings: expandedSettings
+
+            function openSettingsPageFromPopover() {
+                shell.currentPage = "settings"
+            }
+
+            SidebarSettingsPopoverController {
+                id: controller
+                email: "sinobec1013@gmail.com"
+                accountLabel: "Personal account"
+                expandedTriggerItem: expandedSettings.settingsTrigger
+                railTriggerItem: collapsedSettingsTrigger
+                onSettingsRequested: shell.openSettingsPageFromPopover()
+            }
+
+            ExpandedSidebarSettingsPopover {
+                id: expandedSettings
+                x: 24
+                y: 820
+                width: 264
+                selected: shell.currentPage === "settings"
+                popoverOpen: controller.popoverOpen && controller.activeTriggerKind === "expanded"
+                onToggleRequested: controller.toggleExpandedPopover()
+            }
+
+            Rectangle {
+                x: 20
+                y: 820
+                width: 44
+                height: 44
+
+                MouseArea {
+                    id: collapsedSettingsTrigger
+                    objectName: "collapsedSettingsTrigger"
+                    anchors.fill: parent
+                    onClicked: controller.toggleRailPopover()
+                }
+            }
+        }
+    }
+
     function createSubject() {
         return createTemporaryObject(subjectComponent, host)
     }
@@ -109,6 +160,10 @@ TestCase {
 
     function createPhaseTwoHarness() {
         return createTemporaryObject(phaseTwoHarnessComponent, popupHost)
+    }
+
+    function createPhaseTwoShellHarness() {
+        return createTemporaryObject(appShellPhaseTwoHarnessComponent, popupHost)
     }
 
     function findByObjectName(node, name) {
@@ -351,5 +406,53 @@ TestCase {
 
         harness.controller.closePopover()
         compare(harness.controller.popoverOpen, false)
+    }
+
+    function test_collapsed_trigger_opens_same_popover_pattern() {
+        const harness = createPhaseTwoShellHarness()
+
+        verify(harness !== null)
+        verify(harness.controller !== null)
+
+        mouseClick(findByObjectName(harness, "collapsedSettingsTrigger"), 22, 22, Qt.LeftButton)
+        tryCompare(harness.controller, "popoverOpen", true)
+        compare(harness.controller.activeTriggerKind, "rail")
+    }
+
+    function test_settings_row_closes_popover_and_switches_to_settings_page() {
+        const harness = createPhaseTwoShellHarness()
+
+        verify(harness !== null)
+        verify(harness.controller !== null)
+
+        mouseClick(harness.expandedSettings.settingsTrigger, 24, 24, Qt.LeftButton)
+        tryCompare(harness.controller, "popoverOpen", true)
+
+        const settingsHitArea = findByObjectName(harness.controller.settingsPopover, "settingsHitArea")
+        verify(settingsHitArea !== null)
+
+        mouseClick(settingsHitArea, 24, 24, Qt.LeftButton)
+
+        tryCompare(harness.controller, "popoverOpen", false)
+        compare(harness.currentPage, "settings")
+        compare(harness.expandedSettings.selected, true)
+    }
+
+    function test_both_triggers_can_reopen_popover_while_already_on_settings_page() {
+        const harness = createPhaseTwoShellHarness()
+
+        verify(harness !== null)
+        verify(harness.controller !== null)
+
+        harness.currentPage = "settings"
+
+        mouseClick(harness.expandedSettings.settingsTrigger, 24, 24, Qt.LeftButton)
+        tryCompare(harness.controller, "popoverOpen", true)
+        harness.controller.closePopover()
+        tryCompare(harness.controller, "popoverOpen", false)
+
+        mouseClick(findByObjectName(harness, "collapsedSettingsTrigger"), 22, 22, Qt.LeftButton)
+        tryCompare(harness.controller, "popoverOpen", true)
+        compare(harness.controller.activeTriggerKind, "rail")
     }
 }
