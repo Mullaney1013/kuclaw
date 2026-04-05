@@ -2,6 +2,10 @@
 
 #include <QStandardPaths>
 
+namespace {
+constexpr auto kAppLanguageKey = "app/language";
+}
+
 SettingsManager::SettingsManager(QObject* parent)
     : QObject(parent),
       settings_() {}
@@ -12,6 +16,19 @@ QVariant SettingsManager::value(const QString& key, const QVariant& defaultValue
 
 void SettingsManager::setValue(const QString& key, const QVariant& value) {
     settings_.setValue(key, value);
+}
+
+QString SettingsManager::appLanguage() const {
+    return value(QString::fromLatin1(kAppLanguageKey)).toString();
+}
+
+void SettingsManager::setAppLanguage(const QString& localeCode) {
+    setValue(QString::fromLatin1(kAppLanguageKey), localeCode);
+}
+
+void SettingsManager::clearForTesting() {
+    settings_.clear();
+    settings_.sync();
 }
 
 QKeySequence SettingsManager::captureHotkey() const {

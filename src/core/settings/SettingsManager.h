@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QSettings>
+#include <QString>
 #include <QVariant>
 #include <QKeySequence>
 
@@ -14,6 +15,10 @@ public:
     QVariant value(const QString& key,
                    const QVariant& defaultValue = {}) const;
     void setValue(const QString& key, const QVariant& value);
+
+    QString appLanguage() const;
+    void setAppLanguage(const QString& localeCode);
+    void clearForTesting();
 
     QKeySequence captureHotkey() const;
     QKeySequence pinHotkey() const;

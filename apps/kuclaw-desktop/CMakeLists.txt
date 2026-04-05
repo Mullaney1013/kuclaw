@@ -303,12 +303,22 @@ qt_add_executable(kuclaw_tray_manager_tests
     ${CMAKE_SOURCE_DIR}/src/core/tray/TrayManager.cpp
 )
 
+qt_add_executable(kuclaw_app_language_manager_tests
+    ${CMAKE_SOURCE_DIR}/tests/cpp/tst_app_language_manager.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/settings/SettingsManager.cpp
+)
+
 set_target_properties(kuclaw_application_reopen_policy_tests PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
 
 set_target_properties(kuclaw_tray_manager_tests PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+)
+
+set_target_properties(kuclaw_app_language_manager_tests PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
@@ -320,6 +330,12 @@ target_include_directories(kuclaw_application_reopen_policy_tests
 )
 
 target_include_directories(kuclaw_tray_manager_tests
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/src
+)
+
+target_include_directories(kuclaw_app_language_manager_tests
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src
@@ -337,6 +353,13 @@ target_link_libraries(kuclaw_tray_manager_tests
         Qt6::Core
         Qt6::Gui
         Qt6::Widgets
+        Qt6::Test
+)
+
+target_link_libraries(kuclaw_app_language_manager_tests
+    PRIVATE
+        Qt6::Core
+        Qt6::Gui
         Qt6::Test
 )
 
@@ -430,6 +453,11 @@ set_tests_properties(kuclaw_application_reopen_policy_tests PROPERTIES
 
 add_test(NAME kuclaw_tray_manager_tests COMMAND kuclaw_tray_manager_tests)
 set_tests_properties(kuclaw_tray_manager_tests PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+)
+
+add_test(NAME kuclaw_app_language_manager_tests COMMAND kuclaw_app_language_manager_tests)
+set_tests_properties(kuclaw_app_language_manager_tests PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 )
 
