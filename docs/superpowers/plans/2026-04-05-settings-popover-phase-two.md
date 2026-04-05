@@ -4,7 +4,7 @@
 
 **Goal:** Make both sidebar `Settings` entry points open the same popover, and route the popover's `Settings` row into the existing full `Settings / Preferences` page without changing the approved phase-one popover visuals.
 
-**Architecture:** Keep `SettingsPopover.qml` presentation-focused and let it emit semantic actions. Introduce one shared controller component that owns the popup instance, active trigger anchor, outside-click catcher, and close-then-navigate sequencing. `AppShell.qml` remains the owner of `currentPage` and consumes the controller's `settingsRequested()` signal to enter the existing `SettingsPanel` route while preserving expanded-sidebar selection styling.
+**Architecture:** Keep `SettingsPopover.qml` presentation-focused and let it emit semantic actions. Introduce one shared controller component that owns the popup instance, active trigger anchor, outside-click dismissal, and close-then-navigate sequencing. `AppShell.qml` remains the owner of `currentPage` and consumes the controller's `settingsRequested()` signal to enter the existing `SettingsPanel` route while preserving expanded-sidebar selection styling.
 
 **Tech Stack:** Qt Quick, Qt Quick Controls `Popup`, QML unit tests via `qmltestrunner`, existing `AppShell.qml` shell routing, existing `SettingsPanel.qml`.
 
@@ -267,7 +267,6 @@ Item {
     property Item expandedTriggerItem: null
     property Item railTriggerItem: null
     property var settingsPopover: null
-    property var outsideClickCatcher: null
     property string activeTriggerKind: ""
     readonly property bool popoverOpen: settingsPopover ? settingsPopover.opened : false
 
@@ -306,27 +305,6 @@ Item {
         settingsPopover.y = Math.round(anchor.y - settingsPopover.implicitHeight - 12)
     }
 
-    function ensureOutsideClickCatcher() {
-        if (outsideClickCatcher) {
-            return
-        }
-
-        const catcherParent = root.window ? root.window.contentItem
-                                          : (Overlay.overlay ? Overlay.overlay : root.parent)
-        if (!catcherParent) {
-            return
-        }
-
-        outsideClickCatcher = outsideClickCatcherComponent.createObject(catcherParent)
-    }
-
-    function destroyOutsideClickCatcher() {
-        if (outsideClickCatcher) {
-            outsideClickCatcher.destroy()
-            outsideClickCatcher = null
-        }
-    }
-
     function openFor(kind) {
         if (popoverOpen && activeTriggerKind === kind) {
             closePopover()
@@ -338,7 +316,6 @@ Item {
         updatePopoverPosition()
         settingsPopover.open()
         settingsPopover.forceActiveFocus()
-        ensureOutsideClickCatcher()
     }
 
     function toggleExpandedPopover() {
@@ -350,7 +327,6 @@ Item {
     }
 
     function closePopover() {
-        destroyOutsideClickCatcher()
         if (settingsPopover && settingsPopover.opened) {
             settingsPopover.close()
         }
@@ -360,28 +336,16 @@ Item {
         id: settingsPopoverComponent
 
         SettingsPopover {
+            closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
             onOpenedChanged: {
                 if (opened) {
                     root.updatePopoverPosition()
-                } else {
-                    root.destroyOutsideClickCatcher()
                 }
             }
             onSettingsClicked: {
                 root.closePopover()
                 root.settingsRequested()
             }
-        }
-    }
-
-    Component {
-        id: outsideClickCatcherComponent
-
-        MouseArea {
-            anchors.fill: parent
-            z: 20
-            acceptedButtons: Qt.LeftButton
-            onClicked: root.closePopover()
         }
     }
 }

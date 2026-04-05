@@ -56,6 +56,7 @@ set(KUCLAW_QML_FILES
     ${CMAKE_SOURCE_DIR}/qml/app/AppShell.qml
     ${CMAKE_SOURCE_DIR}/qml/app/ExpandedSidebarSettingsPopover.qml
     ${CMAKE_SOURCE_DIR}/qml/app/SettingsPopover.qml
+    ${CMAKE_SOURCE_DIR}/qml/app/SidebarSettingsPopoverController.qml
     ${CMAKE_SOURCE_DIR}/qml/app/AutomationSectionStyles.js
     ${CMAKE_SOURCE_DIR}/qml/app/TitleBarLayout.js
     ${CMAKE_SOURCE_DIR}/qml/app/TitleBarDragRegion.qml
@@ -101,6 +102,10 @@ set_source_files_properties(
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/SettingsPopover.qml
     PROPERTIES QT_RESOURCE_ALIAS app/SettingsPopover.qml
+)
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/qml/app/SidebarSettingsPopoverController.qml
+    PROPERTIES QT_RESOURCE_ALIAS app/SidebarSettingsPopoverController.qml
 )
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/AutomationSectionStyles.js

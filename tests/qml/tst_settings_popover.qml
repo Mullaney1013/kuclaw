@@ -45,6 +45,50 @@ TestCase {
         }
     }
 
+    Component {
+        id: phaseTwoHarnessComponent
+
+        Item {
+            id: shellHarness
+            width: 640
+            height: 900
+
+            property string currentPage: "none"
+            property int settingsRequests: 0
+            property alias controller: controllerItem
+            property alias expandedAnchor: expandedAnchorItem
+            property alias railAnchor: railAnchorItem
+
+            Rectangle {
+                id: expandedAnchorItem
+                x: 24
+                y: 820
+                width: 264
+                height: 52
+            }
+
+            Rectangle {
+                id: railAnchorItem
+                x: 20
+                y: 820
+                width: 44
+                height: 44
+            }
+
+            SidebarSettingsPopoverController {
+                id: controllerItem
+                email: "sinobec1013@gmail.com"
+                accountLabel: "Personal account"
+                expandedTriggerItem: expandedAnchorItem
+                railTriggerItem: railAnchorItem
+                onSettingsRequested: {
+                    shellHarness.settingsRequests += 1
+                    shellHarness.currentPage = "settings"
+                }
+            }
+        }
+    }
+
     function createSubject() {
         return createTemporaryObject(subjectComponent, host)
     }
@@ -55,6 +99,10 @@ TestCase {
 
     function createSidebarSettingsPopover() {
         return createTemporaryObject(sidebarSettingsPopoverComponent, host)
+    }
+
+    function createPhaseTwoHarness() {
+        return createTemporaryObject(phaseTwoHarnessComponent, host)
     }
 
     function findByObjectName(node, name) {
@@ -256,5 +304,77 @@ TestCase {
 
         tryCompare(subject.settingsPopover, "x", originalX + 24)
         tryCompare(subject.settingsPopover, "y", originalY - 36)
+    }
+
+    function test_controller_opens_from_both_anchor_types() {
+        const harness = createPhaseTwoHarness()
+
+        verify(harness !== null)
+        verify(harness.controller !== null)
+
+        harness.controller.toggleExpandedPopover()
+        tryCompare(harness.controller, "popoverOpen", true)
+        compare(harness.controller.activeTriggerKind, "expanded")
+        verify(harness.controller.settingsPopover.y + harness.controller.settingsPopover.height <= harness.expandedAnchor.y)
+
+        harness.controller.toggleRailPopover()
+        tryCompare(harness.controller, "popoverOpen", true)
+        compare(harness.controller.activeTriggerKind, "rail")
+        verify(harness.controller.settingsPopover.y + harness.controller.settingsPopover.height <= harness.railAnchor.y)
+    }
+
+    function test_controller_reanchors_when_active_trigger_moves() {
+        const harness = createPhaseTwoHarness()
+
+        verify(harness !== null)
+        verify(harness.controller !== null)
+
+        harness.controller.toggleExpandedPopover()
+        tryCompare(harness.controller, "popoverOpen", true)
+
+        const originalX = harness.controller.settingsPopover.x
+        const originalY = harness.controller.settingsPopover.y
+
+        harness.expandedAnchor.x += 18
+        harness.expandedAnchor.y -= 26
+
+        tryCompare(harness.controller.settingsPopover, "x", originalX + 18)
+        tryCompare(harness.controller.settingsPopover, "y", originalY - 26)
+    }
+
+    function test_controller_closes_when_active_trigger_hides() {
+        const harness = createPhaseTwoHarness()
+
+        verify(harness !== null)
+        verify(harness.controller !== null)
+
+        harness.controller.toggleExpandedPopover()
+        tryCompare(harness.controller, "popoverOpen", true)
+
+        harness.expandedAnchor.visible = false
+
+        tryCompare(harness.controller, "popoverOpen", false)
+    }
+
+    function test_controller_closes_then_requests_settings_navigation() {
+        const harness = createPhaseTwoHarness()
+
+        verify(harness !== null)
+        verify(harness.controller !== null)
+
+        harness.controller.toggleExpandedPopover()
+        tryCompare(harness.controller, "popoverOpen", true)
+
+        const settingsHitArea = findByObjectName(harness.controller.settingsPopover, "settingsHitArea")
+        verify(settingsHitArea !== null)
+
+        mouseClick(settingsHitArea, 24, 24, Qt.LeftButton)
+
+        tryCompare(harness.controller, "popoverOpen", false)
+        compare(harness.settingsRequests, 1)
+        compare(harness.currentPage, "settings")
+
+        harness.controller.closePopover()
+        compare(harness.controller.popoverOpen, false)
     }
 }
