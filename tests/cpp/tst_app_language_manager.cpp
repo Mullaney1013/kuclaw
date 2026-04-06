@@ -2,6 +2,7 @@
 
 #include "core/i18n/AppLanguageManager.h"
 #include "core/settings/SettingsManager.h"
+#include "ui_bridge/viewmodels/AppLanguageViewModel.h"
 
 class AppLanguageManagerTest final : public QObject {
     Q_OBJECT
@@ -87,6 +88,20 @@ private slots:
 
         QVERIFY(languageManager.setCurrentLocale(QStringLiteral("zh_CN")));
         QCOMPARE(languageManager.currentLocale(), QStringLiteral("zh_CN"));
+        QCOMPARE(settings.appLanguage(), QStringLiteral("zh_CN"));
+    }
+
+    void viewModelReflectsCurrentLocaleAndCanSwitch() {
+        SettingsManager settings;
+        settings.clearForTesting();
+        AppLanguageManager languageManager(&settings);
+        AppLanguageViewModel viewModel(&languageManager);
+
+        QVERIFY(languageManager.setCurrentLocale(QStringLiteral("en_US")));
+        QCOMPARE(viewModel.currentLocale(), QStringLiteral("en_US"));
+
+        viewModel.selectLocale(QStringLiteral("zh_CN"));
+        QCOMPARE(viewModel.currentLocale(), QStringLiteral("zh_CN"));
         QCOMPARE(settings.appLanguage(), QStringLiteral("zh_CN"));
     }
 };

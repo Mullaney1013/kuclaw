@@ -9,11 +9,13 @@
 #include "core/capture/CaptureSessionController.h"
 #include "core/capture/ScreenCaptureManager.h"
 #include "core/clipboard/ClipboardManager.h"
+#include "core/i18n/AppLanguageManager.h"
 #include "core/hotkey/HotkeyManager.h"
 #include "core/pin/PinWindowManager.h"
 #include "core/settings/SettingsManager.h"
 #include "core/tray/TrayManager.h"
 #include "ui_bridge/viewmodels/CaptureViewModel.h"
+#include "ui_bridge/viewmodels/AppLanguageViewModel.h"
 #include "ui_bridge/viewmodels/ColorHistoryViewModel.h"
 #include "ui_bridge/viewmodels/PinboardViewModel.h"
 #include "ui_bridge/viewmodels/SettingsViewModel.h"
@@ -32,6 +34,7 @@ public:
     bool captureInProgress() const;
     QString captureBackend() const;
     CaptureViewModel* captureViewModel();
+    AppLanguageViewModel* appLanguageViewModel();
     ColorHistoryViewModel* colorHistoryViewModel();
     PinboardViewModel* pinboardViewModel();
     SettingsViewModel* settingsViewModel();
@@ -58,6 +61,7 @@ private:
     void wireSignals();
 
     SettingsManager settingsManager_;
+    AppLanguageManager appLanguageManager_;
     ClipboardManager clipboardManager_;
     AnnotationManager annotationManager_;
     ScreenCaptureManager screenCaptureManager_;
@@ -67,6 +71,7 @@ private:
     HotkeyManager hotkeyManager_;
     TrayManager trayManager_;
     CaptureViewModel captureViewModel_;
+    AppLanguageViewModel appLanguageViewModel_;
     ColorHistoryViewModel colorHistoryViewModel_;
     PinboardViewModel pinboardViewModel_;
     SettingsViewModel settingsViewModel_;

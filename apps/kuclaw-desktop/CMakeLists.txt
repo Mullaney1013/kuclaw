@@ -18,7 +18,9 @@ set(KUCLAW_DESKTOP_SOURCES
     ${CMAKE_SOURCE_DIR}/src/core/capture/CaptureCoordinator.cpp
     ${CMAKE_SOURCE_DIR}/src/core/capture/NativeScreenHelperFactory.cpp
     ${CMAKE_SOURCE_DIR}/src/core/pin/PinWindowManager.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/i18n/AppLanguageManager.cpp
     ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/CaptureViewModel.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/AppLanguageViewModel.cpp
     ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/ColorHistoryViewModel.cpp
     ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/PinboardViewModel.cpp
     ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/SettingsViewModel.cpp
@@ -307,6 +309,7 @@ qt_add_executable(kuclaw_app_language_manager_tests
     ${CMAKE_SOURCE_DIR}/tests/cpp/tst_app_language_manager.cpp
     ${CMAKE_SOURCE_DIR}/src/core/settings/SettingsManager.cpp
     ${CMAKE_SOURCE_DIR}/src/core/i18n/AppLanguageManager.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/AppLanguageViewModel.cpp
 )
 
 set_target_properties(kuclaw_application_reopen_policy_tests PROPERTIES

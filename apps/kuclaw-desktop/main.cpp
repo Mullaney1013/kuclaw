@@ -141,6 +141,8 @@ int main(int argc, char* argv[]) {
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("appCoordinator", &coordinator);
     engine.rootContext()->setContextProperty("captureViewModel", coordinator.captureViewModel());
+    engine.rootContext()->setContextProperty("appLanguageViewModel",
+                                             coordinator.appLanguageViewModel());
     engine.rootContext()->setContextProperty("colorHistoryViewModel", coordinator.colorHistoryViewModel());
     engine.rootContext()->setContextProperty("pinboardViewModel", coordinator.pinboardViewModel());
     engine.rootContext()->setContextProperty("settingsViewModel", coordinator.settingsViewModel());

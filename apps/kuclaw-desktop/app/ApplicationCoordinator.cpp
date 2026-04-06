@@ -21,6 +21,7 @@
 
 ApplicationCoordinator::ApplicationCoordinator(QObject* parent)
     : QObject(parent),
+      appLanguageManager_(&settingsManager_, this),
       captureSessionController_(&screenCaptureManager_, &clipboardManager_, &annotationManager_, this),
       captureCoordinator_(createNativeScreenHelper(), &clipboardManager_, &settingsManager_, this),
       pinWindowManager_(&clipboardManager_, this),
@@ -38,6 +39,7 @@ ApplicationCoordinator::ApplicationCoordinator(QObject* parent)
           this),
       trayManager_(this),
       captureViewModel_(&captureSessionController_, this),
+      appLanguageViewModel_(&appLanguageManager_, this),
       colorHistoryViewModel_(&clipboardManager_, this),
       pinboardViewModel_(&pinWindowManager_, this),
       settingsViewModel_(&settingsManager_, this),
@@ -62,6 +64,7 @@ void ApplicationCoordinator::initialize() {
         return;
     }
 
+    appLanguageManager_.initialize();
     wireSignals();
     trayManager_.show();
     hotkeyManager_.registerDefaults();
@@ -73,6 +76,10 @@ void ApplicationCoordinator::initialize() {
 
 CaptureViewModel* ApplicationCoordinator::captureViewModel() {
     return &captureViewModel_;
+}
+
+AppLanguageViewModel* ApplicationCoordinator::appLanguageViewModel() {
+    return &appLanguageViewModel_;
 }
 
 ColorHistoryViewModel* ApplicationCoordinator::colorHistoryViewModel() {
