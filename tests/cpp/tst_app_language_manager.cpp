@@ -1,5 +1,6 @@
 #include <QtTest>
 
+#include "core/i18n/AppLanguageManager.h"
 #include "core/settings/SettingsManager.h"
 
 class AppLanguageManagerTest final : public QObject {
@@ -36,6 +37,57 @@ private slots:
             SettingsManager settings;
             QCOMPARE(settings.appLanguage(), QStringLiteral("en_US"));
         }
+    }
+
+    void resolvesFirstLaunchFromSupportedSystemLocale() {
+        SettingsManager settings;
+        settings.clearForTesting();
+        AppLanguageManager languageManager(&settings);
+
+        QCOMPARE(languageManager.resolveInitialLocale(QLocale(QStringLiteral("zh_CN"))),
+                 QStringLiteral("zh_CN"));
+        QCOMPARE(languageManager.resolveInitialLocale(QLocale(QStringLiteral("en_US"))),
+                 QStringLiteral("en_US"));
+    }
+
+    void fallsBackToEnglishForUnsupportedSystemLocale() {
+        SettingsManager settings;
+        settings.clearForTesting();
+        AppLanguageManager languageManager(&settings);
+
+        QCOMPARE(languageManager.resolveInitialLocale(QLocale(QStringLiteral("ja_JP"))),
+                 QStringLiteral("en_US"));
+    }
+
+    void persistedLanguageOverridesSystemLocale() {
+        SettingsManager settings;
+        settings.clearForTesting();
+        settings.setAppLanguage(QStringLiteral("zh_CN"));
+        AppLanguageManager languageManager(&settings);
+
+        QCOMPARE(languageManager.effectiveLocale(QLocale(QStringLiteral("en_US"))),
+                 QStringLiteral("zh_CN"));
+    }
+
+    void initializeUsesSystemDefaultWithoutPersistingPreference() {
+        SettingsManager settings;
+        settings.clearForTesting();
+        AppLanguageManager languageManager(&settings);
+
+        const QString expectedLocale = languageManager.effectiveLocale(QLocale::system());
+        QVERIFY(languageManager.initialize());
+        QCOMPARE(languageManager.currentLocale(), expectedLocale);
+        QCOMPARE(settings.appLanguage().isEmpty(), true);
+    }
+
+    void setCurrentLocalePersistsExplicitChoice() {
+        SettingsManager settings;
+        settings.clearForTesting();
+        AppLanguageManager languageManager(&settings);
+
+        QVERIFY(languageManager.setCurrentLocale(QStringLiteral("zh_CN")));
+        QCOMPARE(languageManager.currentLocale(), QStringLiteral("zh_CN"));
+        QCOMPARE(settings.appLanguage(), QStringLiteral("zh_CN"));
     }
 };
 

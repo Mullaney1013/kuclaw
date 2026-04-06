@@ -306,6 +306,7 @@ qt_add_executable(kuclaw_tray_manager_tests
 qt_add_executable(kuclaw_app_language_manager_tests
     ${CMAKE_SOURCE_DIR}/tests/cpp/tst_app_language_manager.cpp
     ${CMAKE_SOURCE_DIR}/src/core/settings/SettingsManager.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/i18n/AppLanguageManager.cpp
 )
 
 set_target_properties(kuclaw_application_reopen_policy_tests PROPERTIES
