@@ -89,6 +89,53 @@ set(KUCLAW_RESOURCE_FILES
     ${CMAKE_SOURCE_DIR}/assets/icons/log-out.svg
 )
 
+find_program(KUCLAW_LRELEASE_EXECUTABLE
+    NAMES lrelease6 lrelease
+    REQUIRED
+)
+
+set(KUCLAW_TRANSLATION_TS_FILES
+    ${CMAKE_SOURCE_DIR}/translations/kuclaw_en_US.ts
+    ${CMAKE_SOURCE_DIR}/translations/kuclaw_zh_CN.ts
+)
+
+set(KUCLAW_TRANSLATION_OUTPUT_DIR
+    ${CMAKE_CURRENT_BINARY_DIR}/translations
+)
+set(KUCLAW_TRANSLATION_QM_FILES)
+foreach(KUCLAW_TRANSLATION_TS_FILE IN LISTS KUCLAW_TRANSLATION_TS_FILES)
+    get_filename_component(KUCLAW_TRANSLATION_NAME_WE
+        "${KUCLAW_TRANSLATION_TS_FILE}"
+        NAME_WE
+    )
+    set(KUCLAW_TRANSLATION_QM_FILE
+        ${KUCLAW_TRANSLATION_OUTPUT_DIR}/${KUCLAW_TRANSLATION_NAME_WE}.qm
+    )
+    add_custom_command(
+        OUTPUT ${KUCLAW_TRANSLATION_QM_FILE}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${KUCLAW_TRANSLATION_OUTPUT_DIR}
+        COMMAND
+            ${KUCLAW_LRELEASE_EXECUTABLE}
+            ${KUCLAW_TRANSLATION_TS_FILE}
+            -qm
+            ${KUCLAW_TRANSLATION_QM_FILE}
+        DEPENDS ${KUCLAW_TRANSLATION_TS_FILE}
+        VERBATIM
+    )
+    set_source_files_properties(
+        ${KUCLAW_TRANSLATION_QM_FILE}
+        PROPERTIES QT_RESOURCE_ALIAS ${KUCLAW_TRANSLATION_NAME_WE}.qm
+    )
+    list(APPEND KUCLAW_TRANSLATION_QM_FILES ${KUCLAW_TRANSLATION_QM_FILE})
+endforeach()
+
+set_source_files_properties(
+    ${KUCLAW_TRANSLATION_QM_FILES}
+    PROPERTIES GENERATED TRUE
+)
+
+add_custom_target(kuclaw_translations DEPENDS ${KUCLAW_TRANSLATION_QM_FILES})
+
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/qml/app/Main.qml
     PROPERTIES QT_RESOURCE_ALIAS app/Main.qml
@@ -259,6 +306,15 @@ target_link_libraries(${KUCLAW_DESKTOP_TARGET}
         Qt6::Widgets
 )
 
+qt_add_resources(${KUCLAW_DESKTOP_TARGET} kuclaw_desktop_translations
+    PREFIX "/translations"
+    FILES ${KUCLAW_TRANSLATION_QM_FILES}
+)
+
+add_dependencies(${KUCLAW_DESKTOP_TARGET}
+    kuclaw_translations
+)
+
 if(APPLE)
     target_link_libraries(${KUCLAW_DESKTOP_TARGET}
         PRIVATE
@@ -311,6 +367,13 @@ qt_add_executable(kuclaw_app_language_manager_tests
     ${CMAKE_SOURCE_DIR}/src/core/i18n/AppLanguageManager.cpp
     ${CMAKE_SOURCE_DIR}/src/ui_bridge/viewmodels/AppLanguageViewModel.cpp
 )
+
+qt_add_resources(kuclaw_app_language_manager_tests kuclaw_app_language_test_translation_resources
+    PREFIX "/translations"
+    FILES ${KUCLAW_TRANSLATION_QM_FILES}
+)
+
+add_dependencies(kuclaw_app_language_manager_tests kuclaw_translations)
 
 set_target_properties(kuclaw_application_reopen_policy_tests PROPERTIES
     CXX_STANDARD 20

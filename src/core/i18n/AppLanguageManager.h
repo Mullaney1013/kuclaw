@@ -4,6 +4,8 @@
 #include <QLocale>
 #include <QStringList>
 
+class QGuiApplication;
+class QTranslator;
 class SettingsManager;
 
 class AppLanguageManager final : public QObject {
@@ -24,8 +26,11 @@ signals:
     void currentLocaleChanged();
 
 private:
+    bool applyLocale(const QString& localeCode, bool persistSelection);
     bool isSupportedLocale(const QString& localeCode) const;
 
     SettingsManager* settingsManager_ = nullptr;
+    QGuiApplication* app_ = nullptr;
+    QTranslator* translator_ = nullptr;
     QString currentLocale_;
 };

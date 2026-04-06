@@ -79,6 +79,11 @@ private slots:
         QVERIFY(languageManager.initialize());
         QCOMPARE(languageManager.currentLocale(), expectedLocale);
         QCOMPARE(settings.appLanguage().isEmpty(), true);
+        QCOMPARE(QCoreApplication::translate("AppLanguageProbe",
+                                             "Settings language probe"),
+                 expectedLocale == QStringLiteral("zh_CN")
+                     ? QStringLiteral("设置语言探针")
+                     : QStringLiteral("Settings language probe"));
     }
 
     void setCurrentLocalePersistsExplicitChoice() {
@@ -89,6 +94,14 @@ private slots:
         QVERIFY(languageManager.setCurrentLocale(QStringLiteral("zh_CN")));
         QCOMPARE(languageManager.currentLocale(), QStringLiteral("zh_CN"));
         QCOMPARE(settings.appLanguage(), QStringLiteral("zh_CN"));
+        QCOMPARE(QCoreApplication::translate("AppLanguageProbe",
+                                             "Settings language probe"),
+                 QStringLiteral("设置语言探针"));
+
+        QVERIFY(languageManager.setCurrentLocale(QStringLiteral("en_US")));
+        QCOMPARE(QCoreApplication::translate("AppLanguageProbe",
+                                             "Settings language probe"),
+                 QStringLiteral("Settings language probe"));
     }
 
     void viewModelReflectsCurrentLocaleAndCanSwitch() {
@@ -99,10 +112,16 @@ private slots:
 
         QVERIFY(languageManager.setCurrentLocale(QStringLiteral("en_US")));
         QCOMPARE(viewModel.currentLocale(), QStringLiteral("en_US"));
+        QCOMPARE(QCoreApplication::translate("AppLanguageProbe",
+                                             "Settings language probe"),
+                 QStringLiteral("Settings language probe"));
 
         viewModel.selectLocale(QStringLiteral("zh_CN"));
         QCOMPARE(viewModel.currentLocale(), QStringLiteral("zh_CN"));
         QCOMPARE(settings.appLanguage(), QStringLiteral("zh_CN"));
+        QCOMPARE(QCoreApplication::translate("AppLanguageProbe",
+                                             "Settings language probe"),
+                 QStringLiteral("设置语言探针"));
     }
 };
 
